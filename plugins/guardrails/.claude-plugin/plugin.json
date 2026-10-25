@@ -1,0 +1,7 @@
+{
+  "name": "guardrails",
+  "version": "1.0.0",
+  "description": "Stops test slop and doc sprawl: only tests that catch real regressions, docs proportional to the change, and a nudge when a new doc file appears unasked.",
+  "author": { "name": "CIGIBWARIN", "url": "https://github.com/CIGIBWARIN" },
+  "license": "MIT"
+}

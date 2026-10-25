@@ -1,0 +1,11 @@
+{
+  "name": "claude-setup",
+  "owner": { "name": "CIGIBWARIN" },
+  "plugins": [
+    {
+      "name": "guardrails",
+      "source": "./plugins/guardrails",
+      "description": "Stops test slop and doc sprawl: only tests that catch real regressions, docs proportional to the change."
+    }
+  ]
+}

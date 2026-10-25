@@ -95,4 +95,8 @@ These parts of ECC were skipped on purpose:
 | [ponytail](https://github.com/DietrichGebert/ponytail) | Keeps Claude from over-engineering: no abstractions or libraries you didn't ask for, and the stdlib first. It logs each task's cost to a local CSV in `~/.config/ponytail/`. Its webhook is off unless you configure one. |
 | [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for websites and app screens. It pulls images from open collections with no API key and checks pages in a real browser (Chrome or Edge, Node 22+). It replaces Anthropic's frontend-design plugin. |
 
+| **guardrails** (in this repo, `plugins/guardrails`) | Stops test slop and doc sprawl. At session start it loads short rules (`rules.md`): write tests only for behavior that can actually break, have no coverage targets, and keep docs in proportion to the change. When Claude creates a new doc file, it gets a nudge to delete it unless you asked for it. To install it on its own, run `/plugin install guardrails --marketplace CIGIBWARIN/claude-setup`. |
+
+I also changed the ECC test skills so they don't push for coverage. `tdd-workflow` now runs only when you call `/tdd-workflow`. I removed the 80% coverage mandates from `tdd-guide`, `python-testing`, `planner` and `verification-loop`. `/test-coverage` still aims for a coverage target, because you run it on purpose.
+
 Plugins from outside the official marketplace come from the GitHub repos listed in `marketplaces.txt`. Project installs also record those repos in `.claude/settings.json` so cloud sessions can resolve them.
