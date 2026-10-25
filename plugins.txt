@@ -1,6 +1,6 @@
 # plugin@marketplace, one per line. Installed at user scope by setup.ps1.
-pyright-lsp@claude-plugins-official
-typescript-lsp@claude-plugins-official
-context7@claude-plugins-official
-security-guidance@claude-plugins-official
 claude-md-management@claude-plugins-official
+context7@claude-plugins-official
+pyright-lsp@claude-plugins-official
+security-guidance@claude-plugins-official
+typescript-lsp@claude-plugins-official
