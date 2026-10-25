@@ -1,0 +1,6 @@
+{
+  "env": {
+    "ENABLE_STOP_REVIEW": "0",
+    "SG_AGENTIC_MODEL": "sonnet"
+  }
+}

@@ -2,9 +2,19 @@
   "name": "claude-setup",
   "version": "1.0.0",
   "private": true,
-  "description": "My Claude Code setup: agents, skills, commands, plugins",
+  "description": "One-step Claude Code setup: curated plugins, guardrails and reviewers",
   "type": "module",
-  "bin": { "claude-setup": "setup.mjs" },
-  "engines": { "node": ">=20.12" },
-  "files": ["setup.mjs", "home", "managed-paths.txt", "plugins.txt", "marketplaces.txt", "npm-globals.txt", "ECC-LICENSE.txt"]
+  "bin": {
+    "claude-setup": "setup.mjs"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "files": [
+    "setup.mjs",
+    "plugins.txt",
+    "marketplaces.txt",
+    "npm-globals.txt",
+    "settings.json"
+  ]
 }

@@ -5,7 +5,12 @@
     {
       "name": "guardrails",
       "source": "./plugins/guardrails",
-      "description": "Stops test slop and doc sprawl: only tests that catch real regressions, docs proportional to the change."
+      "description": "Stops test slop, doc sprawl and unverified 'done': tests only for what can break, docs proportional to the change."
+    },
+    {
+      "name": "toolkit",
+      "source": "./plugins/toolkit",
+      "description": "Python/FastAPI/Postgres/Docker/TypeScript reviewers and reference skills, trimmed from ECC."
     }
   ]
 }

@@ -11,3 +11,7 @@
 - When a change alters behavior that's already documented, update that doc in place with as few lines as possible.
 - A comment or docstring is one line and says why, not what. Don't write module-level essays, restate the code, or add changelog-style comments.
 - Keep documentation in proportion: a small change gets at most a line or two.
+
+## Done means verified
+- Before you say something works, run the narrowest check that proves it: the relevant test, a build, or the command itself. Then say what you ran.
+- If you couldn't verify something, say exactly what's unverified in one line. Don't imply it works.

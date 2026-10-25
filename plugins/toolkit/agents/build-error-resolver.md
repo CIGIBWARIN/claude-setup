@@ -112,11 +112,8 @@ npx eslint . --fix
 
 ## When NOT to Use
 
-- Code needs refactoring → use `refactor-cleaner`
-- Architecture changes needed → use `architect`
-- New features required → use `planner`
-- Tests failing → use `tdd-guide`
-- Security issues → use `security-reviewer`
+- Code needs refactoring, a redesign, or new features: stop and say so
+- Failing tests or security issues: report them instead of patching around them
 
 ---
 

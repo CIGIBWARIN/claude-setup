@@ -1,0 +1,6 @@
+{
+  "name": "toolkit",
+  "description": "Language reviewers and reference skills for Python/FastAPI/Postgres/Docker/TypeScript, hand-picked from ECC (affaan-m/ECC, MIT) and trimmed to what Claude Code doesn't already do.",
+  "author": { "name": "CIGIBWARIN", "url": "https://github.com/CIGIBWARIN" },
+  "license": "MIT"
+}

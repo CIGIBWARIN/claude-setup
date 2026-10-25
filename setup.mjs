@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // Cross-platform installer for this Claude Code setup (Windows, macOS, Linux). No dependencies.
+// Everything is a plugin, so a project install only writes .claude/settings.json and updates come from `claude plugin update`.
 //
-//   npx -y github:CIGIBWARIN/claude-setup            set up the current folder (./.claude, project scope)
-//   npx -y github:CIGIBWARIN/claude-setup --user     set up for every project on this machine (~/.claude)
-//   node setup.mjs export                            (inside a clone) copy ~/.claude changes back into the repo
+//   npx -y github:CIGIBWARIN/claude-setup            enable for the current folder (.claude/settings.json, commit it)
+//   npx -y github:CIGIBWARIN/claude-setup --user     enable for every project on this machine
 //
-// Options: --force  replace files that differ (old copies go to ~/.claude/backups)
-//          --no-tools  skip Python / language-server installs
+// Options: --no-tools    skip Python / language-server installs
 //          --no-plugins  skip plugin installs
 import fs from 'node:fs';
 import os from 'node:os';
@@ -33,39 +32,6 @@ function run(cmd, cmdArgs, opts = {}) {
 
 function onPath(cmd) {
   return run(isWin ? 'where' : 'command -v', [cmd], { quiet: true }).ok;
-}
-
-function filesUnder(p) {
-  const st = fs.statSync(p);
-  if (!st.isDirectory()) return [''];
-  return fs.readdirSync(p, { recursive: true, withFileTypes: true })
-    .filter((d) => d.isFile())
-    .map((d) => path.relative(p, path.join(d.parentPath ?? d.path, d.name)));
-}
-
-function copyTree(srcRoot, dstRoot, rels, { force, backupRoot }) {
-  const stats = { added: 0, same: 0, replaced: 0, kept: [] };
-  for (const rel of rels) {
-    const src = path.join(srcRoot, rel);
-    if (!fs.existsSync(src)) { console.warn(`  missing in source: ${rel}`); continue; }
-    for (const sub of filesUnder(src)) {
-      const s = path.join(src, sub);
-      const d = path.join(dstRoot, rel, sub);
-      if (fs.existsSync(d)) {
-        if (fs.readFileSync(s).equals(fs.readFileSync(d))) { stats.same++; continue; }
-        if (!force) { stats.kept.push(path.join(rel, sub)); continue; }
-        const b = path.join(backupRoot, rel, sub);
-        fs.mkdirSync(path.dirname(b), { recursive: true });
-        fs.copyFileSync(d, b);
-        stats.replaced++;
-      } else {
-        stats.added++;
-      }
-      fs.mkdirSync(path.dirname(d), { recursive: true });
-      fs.copyFileSync(s, d);
-    }
-  }
-  return stats;
 }
 
 function findPython() {
@@ -106,6 +72,10 @@ function installTools() {
   }
 }
 
+function readJson(file) {
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+}
+
 function installPlugins(scope, cwd) {
   if (!onPath('claude')) { console.log('Claude Code CLI not found; skipping plugins. Install Claude Code, then re-run.'); return; }
   // marketplaces.txt lines: "<name> <github owner/repo>"
@@ -119,10 +89,10 @@ function installPlugins(scope, cwd) {
     console.log(`Plugin ${p} (${scope})`);
     run('claude', ['plugin', 'install', p, '--scope', scope], { quiet: true, cwd });
   }
-  // Declare the marketplaces in the project too, so cloud sessions and teammates can resolve its plugins.
   if (scope === 'project') {
+    // Declare the marketplaces in the project too, so cloud sessions and teammates can resolve its plugins.
     const file = path.join(cwd, '.claude', 'settings.json');
-    const settings = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+    const settings = readJson(file);
     settings.extraKnownMarketplaces ??= {};
     for (const [name, repoSlug] of wanted) {
       if (name !== 'claude-plugins-official') settings.extraKnownMarketplaces[name] = { source: { source: 'github', repo: repoSlug } };
@@ -134,46 +104,22 @@ function installPlugins(scope, cwd) {
   fs.writeFileSync(path.join(userClaude, '.i-have-adhd-always'), '');
 }
 
-function setup() {
-  const userMode = has('--user');
-  const target = userMode ? userClaude : path.join(process.cwd(), '.claude');
-  const backupRoot = path.join(userClaude, 'backups', 'claude-setup-' + new Date().toISOString().replace(/[:.]/g, '-'));
-  if (!userMode && path.resolve(process.cwd()) === path.resolve(os.homedir())) {
-    console.error('You are in your home folder; use --user for a machine-wide install, or cd into a project first.');
-    process.exit(1);
-  }
-  console.log(`Installing into ${target}`);
-  const s = copyTree(path.join(repo, 'home'), target, readList('managed-paths.txt'), { force: has('--force'), backupRoot });
-  console.log(`  ${s.added} added, ${s.replaced} replaced, ${s.same} already up to date`);
-  if (s.kept.length) console.log(`  ${s.kept.length} files differ and were left alone (re-run with --force to replace): ${s.kept.slice(0, 5).join(', ')}${s.kept.length > 5 ? ', ...' : ''}`);
-  if (s.replaced) console.log(`  previous versions saved in ${backupRoot}`);
-  if (!has('--no-tools')) installTools();
-  if (!has('--no-plugins')) installPlugins(userMode ? 'user' : 'project', process.cwd());
-  console.log('\nDone. Restart Claude Code so it picks everything up.');
-  if (!userMode) console.log('Commit the .claude folder so cloud sessions and other machines get it too.');
+// settings.json in this repo holds env defaults (e.g. cheaper security reviews); existing user values win.
+function applySettings(file) {
+  const ours = readJson(path.join(repo, 'settings.json'));
+  const settings = readJson(file);
+  settings.env = { ...ours.env, ...settings.env };
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
 }
 
-function exportBack() {
-  const rels = readList('managed-paths.txt').filter((r) => fs.existsSync(path.join(userClaude, r)));
-  for (const rel of rels) fs.rmSync(path.join(repo, 'home', rel), { recursive: true, force: true });
-  copyTree(userClaude, path.join(repo, 'home'), rels, { force: true, backupRoot: os.tmpdir() });
-  const added = args.slice(args.indexOf('export') + 1).filter((a) => !a.startsWith('--'));
-  for (const a of added) {
-    const rel = a.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
-    if (!fs.existsSync(path.join(userClaude, rel))) { console.error(`Not found under ~/.claude: ${rel}`); process.exit(1); }
-    copyTree(userClaude, path.join(repo, 'home'), [rel], { force: true, backupRoot: os.tmpdir() });
-    if (!rels.includes(rel)) rels.push(rel);
-  }
-  fs.writeFileSync(path.join(repo, 'managed-paths.txt'), rels.join('\n') + '\n');
-  const list = JSON.parse(run('claude', ['plugin', 'list', '--json'], { quiet: true }).out || '[]');
-  const plugins = list.filter((p) => p.scope === 'user' && p.enabled).map((p) => p.id).sort();
-  fs.writeFileSync(path.join(repo, 'plugins.txt'), ['# plugin@marketplace, one per line.', ...plugins].join('\n') + '\n');
-  const markets = JSON.parse(run('claude', ['plugin', 'marketplace', 'list', '--json'], { quiet: true }).out || '[]')
-    .filter((m) => m.source === 'github' && plugins.some((p) => p.endsWith('@' + m.name)))
-    .map((m) => `${m.name} ${m.repo}`).sort();
-  fs.writeFileSync(path.join(repo, 'marketplaces.txt'), ['# <marketplace name> <github owner/repo>', ...markets].join('\n') + '\n');
-  run('git', ['status', '--short'], { cwd: repo });
-  console.log('Review, then: git commit -am "Update setup" && git push');
+const userMode = has('--user');
+if (!userMode && path.resolve(process.cwd()) === path.resolve(os.homedir())) {
+  console.error('You are in your home folder; use --user for a machine-wide install, or cd into a project first.');
+  process.exit(1);
 }
-
-if (args[0] === 'export') exportBack(); else setup();
+if (!has('--no-tools')) installTools();
+if (!has('--no-plugins')) installPlugins(userMode ? 'user' : 'project', process.cwd());
+applySettings(userMode ? path.join(userClaude, 'settings.json') : path.join(process.cwd(), '.claude', 'settings.json'));
+console.log('\nDone. Restart Claude Code so it picks everything up.');
+if (!userMode) console.log('Commit .claude/settings.json so cloud sessions and other machines get the same plugins.');

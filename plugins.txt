@@ -7,4 +7,5 @@ ponytail@ponytail
 pyright-lsp@claude-plugins-official
 security-guidance@claude-plugins-official
 taste-skill@taste-skill
+toolkit@claude-setup
 typescript-lsp@claude-plugins-official
