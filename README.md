@@ -1,10 +1,16 @@
 # claude-setup
 
-My Claude Code setup: subagents, slash commands, skills, a rule, and plugins. The same command works on Windows, macOS, and Linux.
+Claude Code at its best in one command, without spending time configuring it. This is a curated, deliberately small set of plugins that fixes the common complaints:
 
-## Install (one step, nothing needed beforehand)
+- tests that don't test anything real
+- doc files nobody asked for
+- over-engineered code
+- "done" claims that were never checked
+- surprise token bills
 
-Run the command in the folder you want Claude to work in. It writes `./.claude`; commit that folder so cloud sessions and other machines get the setup too.
+## Install
+
+Run this in the folder you want Claude to work in. It installs anything that's missing first: Git, Node.js, Claude Code, Python, and the language servers.
 
 **Windows (PowerShell):**
 ```
@@ -16,87 +22,60 @@ irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1 |
 curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash
 ```
 
-**Set up every project on this machine instead** (writes `~/.claude`):
-```
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user
-curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash -s -- --user
-```
+In project mode the only file it writes is `.claude/settings.json`. Commit it, and cloud sessions and teammates get the same setup.
 
-If you already have Node.js 20.12 or newer, `npx -y github:CIGIBWARIN/claude-setup [--user]` does the same thing on any OS.
+To set up every project on the machine instead, add `--user`. On Windows that's `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user`. On macOS and Linux it's `... | bash -s -- --user`.
 
-Anything missing is installed automatically:
+If you already have Node.js 20.12 or newer, `npx -y github:CIGIBWARIN/claude-setup [--user]` does the same thing.
 
-| | Windows | macOS / Linux |
+After installing, restart Claude. If Claude Code was installed fresh, run `claude` once to sign in. Run `/mcp` once to authorize Context7.
+
+**To update, run the same command again.** Plugins follow this repo's commits.
+
+## What you get
+
+| Problem | Fix | Plugin |
 |---|---|---|
-| Git (Claude Code needs it on Windows) | winget | not needed |
-| Node.js | winget (LTS) | private copy in `~/.local/share/claude-setup-node`, checksum-verified, no sudo |
-| Claude Code | official installer | official installer |
-| Python 3.10+ (for security-guidance) | winget | Homebrew on macOS; apt, dnf, pacman, zypper, or apk on Linux (asks for sudo) |
-| Language servers | npm | npm |
+| Test slop and coverage padding | Tests only for behavior that can break. No coverage targets. Never weaken a test to make it pass. | `guardrails` (this repo) |
+| Docs nobody asked for | No new doc files unless you ask. Docs stay in proportion to the change. Claude gets a nudge whenever it creates one. | `guardrails` |
+| "It works" without checking | Claude runs the narrowest check that proves it, and says what's unverified. | `guardrails` |
+| Over-engineering | The smallest change that fully solves the task. Stdlib first. No unrequested abstractions. | [ponytail](https://github.com/DietrichGebert/ponytail) |
+| Answers buried in text | The next action comes first, steps are numbered, and progress is visible. On by default. | [i-have-adhd](https://github.com/ayghri/i-have-adhd) |
+| Wrong or invented APIs | Type errors show up right after each edit. Docs are current for the library version you use. | `pyright-lsp`, `typescript-lsp`, `context7` |
+| Generic AI-looking web pages | Art direction, real images from open collections, and a check in a real browser. | [taste-skill](https://github.com/Leonxlnx/taste-skill) |
+| Insecure code | Pattern warnings on every edit, and an LLM review on each commit and push (on Sonnet). | `security-guidance` |
+| Stale CLAUDE.md | `/claude-md-improver` and `/revise-claude-md`. | `claude-md-management` |
+| Language-specific review | Python, FastAPI, TypeScript, and Postgres reviewers, a build-error fixer, and a silent-failure hunter, plus reference skills for pytest, migrations, Docker, API design, and error handling. `/tdd-workflow` runs only when you call it. | `toolkit` (this repo, trimmed from [ECC](https://github.com/affaan-m/ECC)) |
 
-Then the installer:
+### What's deliberately left out
 
-1. Copies the agents, commands, skills, and rule into the target folder.
-2. Installs the plugins at project or user scope, to match the mode.
+Most "Claude Code setups" make things worse by adding too much. Every skill and agent description costs context in every session, and every hook costs time on every tool call. So this setup doesn't include:
 
-If Claude Code was installed fresh, run `claude` once to sign in.
+- **Anything Claude Code already does.** Plan and Explore agents, `/code-review`, `/security-review`, `/simplify`, `/resume` and `/init` are built in. ECC's 20 agents and 12 commands were cut to 6 agents and 3 commands for this reason.
+- **Always-on rule packs** that mandate TDD, 80% coverage, or a PRD for every change.
+- **Hooks on every tool call.** The only per-tool hook is guardrails' check on file writes.
+- **Per-turn LLM reviews.** security-guidance's diff review after every turn costs about 30k Opus tokens each time, so it's off. Commit and push reviews stay on, and run on Sonnet. To change either, see `settings.json`.
+- **Anything paid or tied to an account,** except Context7's free sign-in.
 
-When it's done, restart Claude and run `/mcp` once to authorize Context7.
+## Customize
 
-Options:
+- **Add or remove a plugin:** edit `plugins.txt`. For a plugin outside the official marketplace, also add its GitHub repo to `marketplaces.txt`.
+- **Change the rules:** edit `plugins/guardrails/rules.md`.
+- **Change the env defaults:** edit `settings.json`. A value you've already set on a machine always wins over this file.
 
-- `--force` replaces files you've edited locally. By default they're left alone. Replaced copies are saved to `~/.claude/backups`.
-- `--no-tools` skips step 2 and step 3.
-- `--no-plugins` skips step 4.
+Push your changes, then re-run the install command on each machine.
 
-Re-running the command is safe. Files that are already up to date are skipped.
+Turn things off for a single session by saying "stop adhd mode" or "ponytail off". To make ADHD mode on-demand instead of always on, delete `~/.claude/.i-have-adhd-always`; you then start it with `/i-have-adhd`.
 
-## Saving changes made on this PC
-
-Run these in a clone of this repo:
+## Layout
 
 ```
-node setup.mjs export                       # copy tracked items from ~/.claude + current user plugins into the repo
-node setup.mjs export skills/my-new-skill   # also start tracking something new under ~/.claude
-git commit -am "Update setup" && git push
+install.ps1 / install.sh   bootstrap missing dependencies, then run setup.mjs
+setup.mjs                  add marketplaces, install/update plugins, apply settings.json
+plugins.txt                plugins to enable
+marketplaces.txt           third-party plugin sources (GitHub)
+npm-globals.txt            language servers
+settings.json              env defaults merged into Claude settings
+plugins/guardrails/        session rules + new-doc-file nudge
+plugins/toolkit/           trimmed ECC agents, commands, and skills (MIT, see LICENSE-ECC.txt)
 ```
-
-## What's here
-
-- `home/` mirrors `.claude/`. The files to track are listed in `managed-paths.txt`.
-- `plugins.txt` lists plugins from the official Anthropic marketplace.
-- `npm-globals.txt` lists the language servers that `pyright-lsp` and `typescript-lsp` need.
-
-### From ECC
-
-These were hand-picked from [affaan-m/ECC](https://github.com/affaan-m/ECC), which is MIT-licensed. See `ECC-LICENSE.txt`, and `ecc-commit.txt` for the commit.
-
-- **Agents:** planner, architect, code-architect, code-explorer, code-reviewer, security-reviewer, silent-failure-hunter, python-reviewer, fastapi-reviewer, typescript-reviewer, database-reviewer, build-error-resolver, tdd-guide, refactor-cleaner, performance-optimizer, doc-updater, type-design-analyzer, pr-test-analyzer, code-simplifier, comment-analyzer. Their "Use PROACTIVELY / MUST BE USED" wording was removed so they don't spawn on every edit.
-- **Skills:** tdd-workflow, verification-loop, search-first, python-patterns, python-testing, fastapi-patterns, database-migrations, postgres-patterns, docker-patterns, api-design, error-handling, codebase-onboarding, deployment-patterns, e2e-testing, browser-qa, architecture-decision-records, safety-guard.
-- **Commands:** `/feature-dev`, `/build-fix`, `/test-coverage`, `/refactor-clean`, `/python-review`, `/fastapi-review`, `/update-docs`, `/update-codemaps`, `/checkpoint`, `/save-session`, `/resume-session`, `/learn`.
-- **Rule:** `rules/ecc/python-fastapi.md`, which loads only for FastAPI-style paths.
-
-These parts of ECC were skipped on purpose:
-
-- The hook runtime, which is slow on Windows.
-- The always-on `rules/common`, which costs about 5k tokens per session and mandates TDD.
-- Duplicates of built-in commands: `/code-review`, `/security-review`, `/plan`, `/aside`.
-- Anything that is paid or needs an account: AgentShield, Exa, fal.ai, and `/astra-review`, which sends diffs to OpenAI.
-
-### Plugins
-
-| Plugin | Purpose |
-|---|---|
-| pyright-lsp / typescript-lsp | Type errors and code navigation after edits. Needs the npm language servers. |
-| context7 | Up-to-date library docs from a hosted Upstash service. Authorize it with `/mcp`. |
-| security-guidance | Warns on risky patterns as you edit, and runs an LLM security review at the end of each turn. Needs Python 3.10+. |
-| claude-md-management | Audits and maintains CLAUDE.md files. |
-| [i-have-adhd](https://github.com/ayghri/i-have-adhd) | ADHD-friendly replies: the next action comes first, steps are numbered, the current state is restated, and progress is visible. The installer turns it on for every session by creating `~/.claude/.i-have-adhd-always`. Delete that file to go back to turning it on with `/i-have-adhd`, or say "stop adhd mode" to turn it off for one session. |
-| [ponytail](https://github.com/DietrichGebert/ponytail) | Keeps Claude from over-engineering: no abstractions or libraries you didn't ask for, and the stdlib first. It logs each task's cost to a local CSV in `~/.config/ponytail/`. Its webhook is off unless you configure one. |
-| [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for websites and app screens. It pulls images from open collections with no API key and checks pages in a real browser (Chrome or Edge, Node 22+). It replaces Anthropic's frontend-design plugin. |
-
-| **guardrails** (in this repo, `plugins/guardrails`) | Stops test slop and doc sprawl. At session start it loads short rules (`rules.md`): write tests only for behavior that can actually break, have no coverage targets, and keep docs in proportion to the change. When Claude creates a new doc file, it gets a nudge to delete it unless you asked for it. To install it on its own, run `/plugin install guardrails --marketplace CIGIBWARIN/claude-setup`. |
-
-I also changed the ECC test skills so they don't push for coverage. `tdd-workflow` now runs only when you call `/tdd-workflow`. I removed the 80% coverage mandates from `tdd-guide`, `python-testing`, `planner` and `verification-loop`. `/test-coverage` still aims for a coverage target, because you run it on purpose.
-
-Plugins from outside the official marketplace come from the GitHub repos listed in `marketplaces.txt`. Project installs also record those repos in `.claude/settings.json` so cloud sessions can resolve them.
