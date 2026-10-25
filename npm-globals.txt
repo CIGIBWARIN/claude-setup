@@ -1,0 +1,4 @@
+# Global npm packages the plugins need (language servers).
+pyright
+typescript
+typescript-language-server
