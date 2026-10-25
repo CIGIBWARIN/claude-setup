@@ -1,5 +1,7 @@
 # claude-setup
 
+**What am I looking at?** You've probably chatted with an AI like ChatGPT. [Claude Code](https://claude.com/claude-code) goes further: it works directly in the files on your computer. You describe what you want ("build me a website for my business") and it writes the code, runs it, and fixes it. Out of the box it can waste time and usage on sloppy extras. This repo is a free add-on you install with one command. It makes Claude work like an experienced developer and gives you tips as you go, so you don't have to learn anything first.
+
 One command makes Claude Code noticeably better, and then it adapts itself to each project. The setup is deliberately small, because every extra rule or skill costs context in every session, and outdated instructions hold newer models back.
 
 ## Install
