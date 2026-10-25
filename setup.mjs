@@ -88,6 +88,8 @@ function installPlugins(scope, cwd) {
   for (const p of readList('plugins.txt')) {
     console.log(`Plugin ${p} (${scope})`);
     run('claude', ['plugin', 'install', p, '--scope', scope], { quiet: true, cwd });
+    // install is a no-op when already present; update makes re-running the installer the upgrade path.
+    run('claude', ['plugin', 'update', p, '--scope', scope], { quiet: true, cwd });
   }
   if (scope === 'project') {
     // Declare the marketplaces in the project too, so cloud sessions and teammates can resolve its plugins.
