@@ -60,13 +60,11 @@ Helper agents get the same rules.
 
 Everything runs on your Claude subscription's usage limits, and nothing is billed separately. Don't set `ANTHROPIC_API_KEY`, which would switch Claude Code to API billing.
 
-## Free habits
+## No learning curve
 
-- Start complex tasks in plan mode (Shift+Tab twice).
-- Run `/clear` when you switch tasks, and `/compact` when context passes about 60%. Long sessions re-read everything on every turn.
-- Run `/context` to see what's using tokens.
-- Use the built-in `/code-review`, `/security-review` and `/simplify`. Nothing here duplicates them.
-- Every few months, run a task with `claude --bare` (no hooks, plugins or LSP), and keep only what still helps.
+You don't need to learn Claude Code first. Claude does the pro moves itself, like planning big tasks, committing checkpoints that work, and asking for a screenshot when it needs one. When a move needs you, Claude adds a one-line **Tip** at the right moment, for example to `/clear` when you switch tasks, `/compact` when the chat gets long, or `/code-review` before you ship. You get at most one tip per reply, and Claude never repeats one in the same session.
+
+Every few months, try a task with `claude --bare` (no hooks, plugins or LSP) and keep only what still helps.
 
 ## Customize
 
