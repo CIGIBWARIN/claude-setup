@@ -44,24 +44,50 @@ function findPython() {
   return null;
 }
 
-function installTools() {
+const winget = (id, scope = []) => run('winget', ['install', '--id', id, ...scope, '--silent', '--accept-package-agreements', '--accept-source-agreements']);
+
+// Installs a system package on Linux with whichever package manager exists (asks for sudo).
+function linuxInstall(pkg, archPkg = pkg) {
+  const sudo = process.getuid?.() === 0 ? '' : 'sudo ';
+  const pm = [['apt-get', `apt-get update && ${sudo}apt-get install -y ${pkg}`], ['dnf', `dnf install -y ${pkg}`],
+    ['pacman', `pacman -S --noconfirm ${archPkg}`], ['zypper', `zypper install -y ${pkg}`], ['apk', `apk add ${pkg}`]].find(([b]) => onPath(b));
+  if (pm) run(sudo + pm[1], []);
+  else console.log(`  Install ${pkg} with your package manager.`);
+}
+
+// yt-dlp's own release binary: distro packages are often too old to download from current sites.
+async function installYtDlp() {
+  const asset = process.platform === 'darwin' ? 'yt-dlp_macos' : process.arch === 'arm64' ? 'yt-dlp_linux_aarch64' : 'yt-dlp_linux';
+  const bin = path.join(os.homedir(), '.local', 'bin');
+  const res = await fetch(`https://github.com/yt-dlp/yt-dlp/releases/latest/download/${asset}`);
+  if (!res.ok) return console.log(`  yt-dlp download failed (${res.status}); /watch can install it later.`);
+  fs.mkdirSync(bin, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'yt-dlp'), Buffer.from(await res.arrayBuffer()), { mode: 0o755 });
+}
+
+async function installTools() {
   if (!findPython()) {
-    console.log('Python 3.10+ not found (needed by security-guidance).');
+    console.log('Python 3.10+ not found (needed by security-guidance and /watch).');
     if (isWin && onPath('winget')) {
-      run('winget', ['install', '--id', 'Python.Python.3.13', '--scope', 'user', '--silent', '--accept-package-agreements', '--accept-source-agreements']);
+      winget('Python.Python.3.13', ['--scope', 'user']);
       console.log('  Python installed; restart your terminal / Claude so it is on PATH.');
-    } else if (process.platform === 'darwin' && onPath('brew')) {
-      run('brew', ['install', 'python@3.13']);
-    } else if (process.platform === 'linux') {
-      const sudo = process.getuid?.() === 0 ? '' : 'sudo ';
-      const pm = [['apt-get', 'apt-get update && ' + sudo + 'apt-get install -y python3'], ['dnf', 'dnf install -y python3'],
-        ['pacman', 'pacman -S --noconfirm python'], ['zypper', 'zypper install -y python3'], ['apk', 'apk add python3']].find(([b]) => onPath(b));
-      if (pm) run(sudo + pm[1], []);
-      else console.log('  Install Python 3.10+ with your package manager.');
-    } else {
-      console.log('  Install Python 3.10+ from https://www.python.org/downloads/');
-    }
-    if (!findPython()) console.log('  Python still not found; security-guidance stays inactive until it is installed.');
+    } else if (process.platform === 'darwin' && onPath('brew')) run('brew', ['install', 'python@3.13']);
+    else if (process.platform === 'linux') linuxInstall('python3', 'python');
+    else console.log('  Install Python 3.10+ from https://www.python.org/downloads/');
+    // Windows only sees the new PATH after a restart, so re-checking here would report a false failure.
+    if (!isWin && !findPython()) console.log('  Python still not found; security-guidance and /watch stay inactive until it is installed.');
+  }
+  // ffmpeg + yt-dlp let /watch read videos locally, with no account or API key.
+  const needFfmpeg = !onPath('ffmpeg'), needYtDlp = !onPath('yt-dlp');
+  if (needFfmpeg || needYtDlp) console.log('Installing video tools for /watch: ' + [needFfmpeg && 'ffmpeg', needYtDlp && 'yt-dlp'].filter(Boolean).join(', '));
+  if (isWin && onPath('winget')) {
+    if (needFfmpeg) winget('Gyan.FFmpeg.Essentials');
+    if (needYtDlp) winget('yt-dlp.yt-dlp');
+  } else if (process.platform === 'darwin' && onPath('brew')) {
+    if (needFfmpeg || needYtDlp) run('brew', ['install', ...(needFfmpeg ? ['ffmpeg'] : []), ...(needYtDlp ? ['yt-dlp'] : [])]);
+  } else if (!isWin) {
+    if (needFfmpeg && process.platform === 'linux') linuxInstall('ffmpeg');
+    if (needYtDlp) await installYtDlp();
   }
   const binFor = { pyright: 'pyright', 'typescript-language-server': 'typescript-language-server', typescript: 'tsc' };
   const missing = readList('npm-globals.txt').filter((p) => !onPath(binFor[p] ?? p));
@@ -159,11 +185,12 @@ if (!userMode && path.resolve(process.cwd()) === path.resolve(os.homedir())) {
 }
 if (has('--remove')) {
   remove(userMode ? 'user' : 'project', process.cwd());
-  console.log('Removed claude-setup from ' + (userMode ? 'this machine' : 'this project') + '. Shared tools (Node, Python, Git, language servers) were left installed.');
+  console.log('Removed claude-setup from ' + (userMode ? 'this machine' : 'this project') + '. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.');
   process.exit(0);
 }
-if (!has('--no-tools')) installTools();
+if (!has('--no-tools')) await installTools();
 if (!has('--no-plugins')) installPlugins(userMode ? 'user' : 'project', process.cwd());
 applySettings(userMode ? path.join(userClaude, 'settings.json') : path.join(process.cwd(), '.claude', 'settings.json'));
-console.log('\nDone. Restart Claude Code so it picks everything up.');
+console.log('\nDone. Restart Claude Code, then open it in your project.');
+console.log('Claude will offer the right first step: /toolkit:specialize to tailor itself to the project, /toolkit:cleanup for older code, or /toolkit:kickoff in an empty folder.');
 if (!userMode) console.log('Commit .claude/settings.json so cloud sessions and other machines get the same plugins.');

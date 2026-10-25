@@ -8,3 +8,7 @@ Do the pro move yourself when you can. When it needs the user to act, add a one-
 - **Something works and is verified, in a git repo:** offer to commit it as a checkpoint.
 - **Before shipping or merging:** Tip: `/code-review` and `/security-review` catch bugs. For websites, `/toolkit:launch-check`.
 - **The user is debugging from a vague description:** ask them to paste the exact error or a screenshot.
+- **The user shares a video link or file:** watch it with `/watch` instead of saying you can't see videos.
+- **Writing that others will read** (a post, email, article, or page copy): polish it with the humanizer skill before you hand it over.
+- **The user describes a file you can't see** (a PDF, spreadsheet, image or doc): Tip: drag it into the chat or paste its path.
+- **The user asks for the same multi-step task a second time:** offer to save it as a project skill. If it's recurring, Tip: `/schedule` runs it on a timer.
