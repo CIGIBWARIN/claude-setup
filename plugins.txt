@@ -3,7 +3,6 @@ claude-md-management@claude-plugins-official
 context7@claude-plugins-official
 guardrails@claude-setup
 i-have-adhd@i-have-adhd
-ponytail@ponytail
 pyright-lsp@claude-plugins-official
 security-guidance@claude-plugins-official
 taste-skill@taste-skill

@@ -4,7 +4,6 @@ Claude Code at its best in one command, without spending time configuring it. Th
 
 - tests that don't test anything real
 - doc files nobody asked for
-- over-engineered code
 - "done" claims that were never checked
 - surprise token bills
 
@@ -39,7 +38,6 @@ After installing, restart Claude. If Claude Code was installed fresh, run `claud
 | Test slop and coverage padding | Tests only for behavior that can break. No coverage targets. Never weaken a test to make it pass. | `guardrails` (this repo) |
 | Docs nobody asked for | No new doc files unless you ask. Docs stay in proportion to the change. Claude gets a nudge whenever it creates one. | `guardrails` |
 | "It works" without checking | Claude runs the narrowest check that proves it, and says what's unverified. | `guardrails` |
-| Over-engineering | The smallest change that fully solves the task. Stdlib first. No unrequested abstractions. | [ponytail](https://github.com/DietrichGebert/ponytail) |
 | Answers buried in text | The next action comes first, steps are numbered, and progress is visible. On by default. | [i-have-adhd](https://github.com/ayghri/i-have-adhd) |
 | Wrong or invented APIs | Type errors show up right after each edit. Docs are current for the library version you use. | `pyright-lsp`, `typescript-lsp`, `context7` |
 | Generic AI-looking web pages | Art direction, real images from open collections, and a check in a real browser. | [taste-skill](https://github.com/Leonxlnx/taste-skill) |
@@ -65,7 +63,7 @@ Most "Claude Code setups" make things worse by adding too much. Every skill and 
 
 Push your changes, then re-run the install command on each machine.
 
-Turn things off for a single session by saying "stop adhd mode" or "ponytail off". To make ADHD mode on-demand instead of always on, delete `~/.claude/.i-have-adhd-always`; you then start it with `/i-have-adhd`.
+Turn ADHD mode off for a single session by saying "stop adhd mode". To make ADHD mode on-demand instead of always on, delete `~/.claude/.i-have-adhd-always`; you then start it with `/i-have-adhd`.
 
 ## Layout
 
