@@ -223,42 +223,9 @@ Recommended commit message format:
 # Check coverage for untested risky paths (no fixed target)
 ```
 
-### Step 8: Write a TDD Evidence Report
+### Step 8: Report the Evidence
 
-After GREEN and coverage are validated, write a short human-readable evidence report. The report is not a replacement for test code; it is an index that explains what the test code proves and preserves that proof across session restarts or squash merges.
-
-Recommended path:
-
-Store the evidence report in the project's standard documentation directory, for example:
-
-```text
-docs/releases/<version>/<plan-or-task-name>.tdd.md
-.github/tdd/<plan-or-task-name>.tdd.md
-.claude/tdd/<plan-or-task-name>.tdd.md
-```
-
-If the repository already uses Claude-specific local artifacts, the `.claude/tdd/` location is also acceptable. Include:
-
-1. **Source plan** - link the `*.plan.md` file if one was used, or state that journeys were derived during this TDD run.
-2. **User journeys** - list the journeys from the plan or the ones written in Step 1.
-3. **Task report** - for each plan task or implemented behavior, record:
-   - one-sentence execution summary
-   - validation command actually run
-   - relevant output excerpt, including RED and GREEN results when applicable
-   - what is guaranteed by the passing tests
-4. **Test specification** - a table of human-readable guarantees:
-
-```markdown
-| # | What is guaranteed | Test file or command | Test type | Result | Evidence |
-|---|--------------------|----------------------|-----------|--------|----------|
-| 1 | Empty search returns an empty result list without throwing | `src/search.test.ts:returns empty list for empty query` | unit | PASS | `npm test -- search.test.ts` |
-| 2 | API rejects invalid limit values with HTTP 400 | `src/api/markets/route.test.ts:validates query parameters` | integration | PASS | `npm test -- route.test.ts` |
-```
-
-5. **Coverage and known gaps** - include the coverage command/result when available and explain any intentional gaps, skipped tests, or untested follow-ups.
-6. **Merge evidence** - if checkpoint commits will be squashed, copy the final RED/GREEN/refactor summary here and into the PR body or squash commit body.
-
-Keep the report factual. Quote actual commands and outcomes; do not invent PASS results for tests that were not run.
+In your reply (not a new file), list each behavior, the test that pins it, and the command you ran.
 
 ## Testing Patterns
 

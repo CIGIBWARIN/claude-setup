@@ -85,6 +85,7 @@ function installPlugins(scope, cwd) {
     if (known.has(name)) run('claude', ['plugin', 'marketplace', 'update', name], { quiet: true });
     else run('claude', ['plugin', 'marketplace', 'add', repoSlug]);
   }
+  const hadAdhd = run('claude', ['plugin', 'list', '--json'], { quiet: true }).out.includes('"i-have-adhd@');
   for (const p of readList('plugins.txt')) {
     console.log(`Plugin ${p} (${scope})`);
     run('claude', ['plugin', 'install', p, '--scope', scope], { quiet: true, cwd });
@@ -101,9 +102,11 @@ function installPlugins(scope, cwd) {
     }
     fs.writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
   }
-  // i-have-adhd only applies itself every session when this flag file exists.
-  fs.mkdirSync(userClaude, { recursive: true });
-  fs.writeFileSync(path.join(userClaude, '.i-have-adhd-always'), '');
+  // i-have-adhd is always-on only while this flag exists; set it on first install so updates keep a user's opt-out.
+  if (!hadAdhd) {
+    fs.mkdirSync(userClaude, { recursive: true });
+    fs.writeFileSync(path.join(userClaude, '.i-have-adhd-always'), '');
+  }
 }
 
 // settings.json in this repo holds env defaults (e.g. cheaper security reviews); existing user values win.

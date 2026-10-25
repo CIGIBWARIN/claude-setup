@@ -1,16 +1,10 @@
 # claude-setup
 
-Claude Code at its best in one command, without spending time configuring it. This is a curated, deliberately small set of plugins that fixes the common complaints:
-
-- tests that don't test anything real
-- doc files nobody asked for
-- over-engineered code
-- "done" claims that were never checked
-- surprise token bills
+One command makes Claude Code noticeably better, and then it adapts itself to each project. The setup is deliberately small, because every extra rule or skill costs context in every session, and outdated instructions hold newer models back.
 
 ## Install
 
-Run this in the folder you want Claude to work in. It installs anything that's missing first: Git, Node.js, Claude Code, Python, and the language servers.
+Run this in the folder you want Claude to work in. It first installs anything that's missing: Git, Node.js, Claude Code, Python, and language servers.
 
 **Windows (PowerShell):**
 ```
@@ -22,60 +16,62 @@ irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1 |
 curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash
 ```
 
-In project mode the only file it writes is `.claude/settings.json`. Commit it, and cloud sessions and teammates get the same setup.
+A project install writes only `.claude/settings.json`. Commit it to get the same setup in cloud sessions and for teammates.
 
-To set up every project on the machine instead, add `--user`. On Windows that's `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user`. On macOS and Linux it's `... | bash -s -- --user`.
+To set up every project on the machine instead, add `--user`:
 
-If you already have Node.js 20.12 or newer, `npx -y github:CIGIBWARIN/claude-setup [--user]` does the same thing.
+- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user`
+- **macOS / Linux:** `... | bash -s -- --user`
 
-After installing, restart Claude. If Claude Code was installed fresh, run `claude` once to sign in. Run `/mcp` once to authorize Context7.
+After installing:
 
-**To update, run the same command again.** Plugins follow this repo's commits.
+1. Restart Claude.
+2. If Claude Code was installed fresh, run `claude` once to sign in.
+3. Run `/mcp` once to authorize Context7.
 
-## What you get
+To update, run the same command again.
 
-| Problem | Fix | Plugin |
-|---|---|---|
-| Test slop and coverage padding | Tests only for behavior that can break. No coverage targets. Never weaken a test to make it pass. | `guardrails` (this repo) |
-| Docs nobody asked for | No new doc files unless you ask. Docs stay in proportion to the change. Claude gets a nudge whenever it creates one. | `guardrails` |
-| "It works" without checking | Claude runs the narrowest check that proves it, and says what's unverified. | `guardrails` |
-| Over-engineering | Before writing code, Claude asks itself whether there's a simpler solution, and uses it if there is. That's one rule: no hooks, no panel. | `guardrails` |
-| Answers buried in text | The next action comes first, steps are numbered, and progress is visible. On by default. | [i-have-adhd](https://github.com/ayghri/i-have-adhd) |
-| Wrong or invented APIs | Type errors show up right after each edit. Docs are current for the library version you use. | `pyright-lsp`, `typescript-lsp`, `context7` |
-| Generic AI-looking web pages | Art direction, real images from open collections, and a check in a real browser. | [taste-skill](https://github.com/Leonxlnx/taste-skill) |
-| Insecure code | Pattern warnings on every edit, and an LLM review on each commit and push (on Sonnet). | `security-guidance` |
-| Stale CLAUDE.md | `/claude-md-improver` and `/revise-claude-md`. | `claude-md-management` |
-| Language-specific review | Python, FastAPI, TypeScript, and Postgres reviewers, a build-error fixer, and a silent-failure hunter, plus reference skills for pytest, migrations, Docker, API design, and error handling. `/tdd-workflow` runs only when you call it. | `toolkit` (this repo, trimmed from [ECC](https://github.com/affaan-m/ECC)) |
+## What makes the difference
 
-### What's deliberately left out
+These are the habits that separate a great result in 45 minutes from 4 hours of slop. Each one is built in:
 
-Most "Claude Code setups" make things worse by adding too much. Every skill and agent description costs context in every session, and every hook costs time on every tool call. So this setup doesn't include:
+| Habit | Where |
+|---|---|
+| **A target, and a way to check it.** Claude pins a concrete target (reference images, the exact expected output, or a number), then loops: build, look at the real output, compare, fix. | `/toolkit:build-to-target` |
+| **Done means verified.** Before saying something works, Claude runs the narrowest check that proves it, and says what it couldn't verify. | `guardrails` rules |
+| **A lean CLAUDE.md for each project, learned from your sessions.** Claude detects the stack and writes the verified commands. It also turns off plugins the project doesn't use, and turns tasks you repeat into project skills. Claude offers this automatically in any project without a CLAUDE.md. | `/toolkit:specialize` |
+| **Simplest solution first.** Before writing code, Claude asks whether there's a simpler way. | `guardrails` rules |
+| **No test slop or doc sprawl.** Claude writes tests only for what can break, with no coverage targets, and adds no new doc files unless you ask. | `guardrails` |
+| **Ask, don't guess.** When a request is ambiguous, Claude asks one question at a time until it's confident. | `guardrails` rules |
 
-- **Anything Claude Code already does.** Plan and Explore agents, `/code-review`, `/security-review`, `/simplify`, `/resume` and `/init` are built in. ECC's 20 agents and 12 commands were cut to 6 agents and 3 commands for this reason.
-- **Always-on rule packs** that mandate TDD, 80% coverage, or a PRD for every change.
-- **Hooks on every tool call.** The only per-tool hook is guardrails' check on file writes.
-- **Per-turn LLM reviews.** security-guidance's diff review after every turn costs about 30k Opus tokens each time, so it's off. Commit and push reviews stay on, and run on Sonnet. To change either, see `settings.json`.
-- **Anything paid or tied to an account,** except Context7's free sign-in.
+Helper agents get the same rules.
+
+## Plugins
+
+| Plugin | Why |
+|---|---|
+| `guardrails` (this repo) | The rules above, plus a nudge when Claude creates a doc file you didn't ask for. |
+| `toolkit` (this repo) | `build-to-target`, `specialize`, and `verification-loop`. `/tdd-workflow` runs only when you call it. Also `/build-fix` for minimal build fixes, and a silent-failure-hunter agent. |
+| `pyright-lsp`, `typescript-lsp` | Show type errors right after each edit. `specialize` turns them off in projects that don't use the language. |
+| `context7` | Up-to-date library docs for the version you're using, so Claude invents fewer APIs. |
+| `security-guidance` | Warns about risky code patterns on each edit. Commits and pushes are reviewed with Sonnet. Its per-turn Opus review (about 30k tokens a turn) is turned off in `settings.json`. |
+| [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for web UI, with real images and a check in a real browser. Web projects only. |
+| [i-have-adhd](https://github.com/ayghri/i-have-adhd) | Answers lead with the next action, steps are numbered, and progress stays visible. It's always on. Say "stop adhd mode" to turn it off for a session, or delete `~/.claude/.i-have-adhd-always` to make it on-demand. |
+
+Everything runs on your Claude subscription's usage limits, and nothing is billed separately. Don't set `ANTHROPIC_API_KEY`, which would switch Claude Code to API billing.
+
+## Free habits
+
+- Start complex tasks in plan mode (Shift+Tab twice).
+- Run `/clear` when you switch tasks, and `/compact` when context passes about 60%. Long sessions re-read everything on every turn.
+- Run `/context` to see what's using tokens.
+- Use the built-in `/code-review`, `/security-review` and `/simplify`. Nothing here duplicates them.
+- Every few months, run a task with `claude --bare` (no hooks, plugins or LSP), and keep only what still helps.
 
 ## Customize
 
-- **Add or remove a plugin:** edit `plugins.txt`. For a plugin outside the official marketplace, also add its GitHub repo to `marketplaces.txt`.
-- **Change the rules:** edit `plugins/guardrails/rules.md`.
-- **Change the env defaults:** edit `settings.json`. A value you've already set on a machine always wins over this file.
+- **Plugins:** edit `plugins.txt`. For third-party plugins, also add their source to `marketplaces.txt`.
+- **Rules:** edit `plugins/guardrails/rules.md`.
+- **Environment defaults:** edit `settings.json`. Values already set on a machine take priority.
 
-Push your changes, then re-run the install command on each machine.
-
-Turn ADHD mode off for a single session by saying "stop adhd mode". To make ADHD mode on-demand instead of always on, delete `~/.claude/.i-have-adhd-always`; you then start it with `/i-have-adhd`.
-
-## Layout
-
-```
-install.ps1 / install.sh   bootstrap missing dependencies, then run setup.mjs
-setup.mjs                  add marketplaces, install/update plugins, apply settings.json
-plugins.txt                plugins to enable
-marketplaces.txt           third-party plugin sources (GitHub)
-npm-globals.txt            language servers
-settings.json              env defaults merged into Claude settings
-plugins/guardrails/        session rules + new-doc-file nudge
-plugins/toolkit/           trimmed ECC agents, commands, and skills (MIT, see LICENSE-ECC.txt)
-```
+Then push, and re-run the install command on each machine.

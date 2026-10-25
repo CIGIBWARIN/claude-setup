@@ -10,7 +10,7 @@
     {
       "name": "toolkit",
       "source": "./plugins/toolkit",
-      "description": "Python/FastAPI/Postgres/Docker/TypeScript reviewers and reference skills, trimmed from ECC."
+      "description": "Self-specializing workflow skills: build to a target, tailor Claude to each project, verify before done."
     }
   ]
 }

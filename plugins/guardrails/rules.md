@@ -19,3 +19,6 @@
 ## Simplicity check
 - Before writing code, ask yourself: is there a simpler solution? That could be code the project already has, the standard library, a platform feature, or fewer lines. If there is, use it.
 - If the simpler option leaves out something the user might want, say so in one line and let them choose.
+
+## Ask, don't guess
+- If a request is ambiguous in a way that would change the result, ask one question at a time until you're confident. Otherwise, proceed without asking.

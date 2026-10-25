@@ -39,7 +39,8 @@ if ! node_ok; then
   tar -xzf "$tmp/$file" -C "$HOME/.local/share/claude-setup-node" --strip-components=1
   rm -rf "$tmp"
   for rc in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zshrc"; do
-    [ -f "$rc" ] || [ "$rc" = "$HOME/.profile" ] || continue
+    # zsh (macOS default) never reads .profile, so create .zshrc for zsh users.
+    [ -f "$rc" ] || [ "$rc" = "$HOME/.profile" ] || { [ "$rc" = "$HOME/.zshrc" ] && [[ "${SHELL:-}" == *zsh ]]; } || continue
     grep -q claude-setup-node "$rc" 2>/dev/null || echo 'export PATH="$HOME/.local/share/claude-setup-node/bin:$PATH"' >> "$rc"
   done
 fi
