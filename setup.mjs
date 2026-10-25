@@ -108,12 +108,30 @@ function installTools() {
 
 function installPlugins(scope, cwd) {
   if (!onPath('claude')) { console.log('Claude Code CLI not found; skipping plugins. Install Claude Code, then re-run.'); return; }
-  const markets = run('claude', ['plugin', 'marketplace', 'list'], { quiet: true }).out;
-  if (!markets.includes('claude-plugins-official')) run('claude', ['plugin', 'marketplace', 'add', 'anthropics/claude-plugins-official']);
+  // marketplaces.txt lines: "<name> <github owner/repo>"
+  const wanted = readList('marketplaces.txt').map((l) => l.split(/\s+/));
+  const known = new Set(JSON.parse(run('claude', ['plugin', 'marketplace', 'list', '--json'], { quiet: true }).out || '[]').map((m) => m.name));
+  for (const [name, repoSlug] of wanted) {
+    if (known.has(name)) run('claude', ['plugin', 'marketplace', 'update', name], { quiet: true });
+    else run('claude', ['plugin', 'marketplace', 'add', repoSlug]);
+  }
   for (const p of readList('plugins.txt')) {
     console.log(`Plugin ${p} (${scope})`);
     run('claude', ['plugin', 'install', p, '--scope', scope], { quiet: true, cwd });
   }
+  // Declare the marketplaces in the project too, so cloud sessions and teammates can resolve its plugins.
+  if (scope === 'project') {
+    const file = path.join(cwd, '.claude', 'settings.json');
+    const settings = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+    settings.extraKnownMarketplaces ??= {};
+    for (const [name, repoSlug] of wanted) {
+      if (name !== 'claude-plugins-official') settings.extraKnownMarketplaces[name] = { source: { source: 'github', repo: repoSlug } };
+    }
+    fs.writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
+  }
+  // i-have-adhd only applies itself every session when this flag file exists.
+  fs.mkdirSync(userClaude, { recursive: true });
+  fs.writeFileSync(path.join(userClaude, '.i-have-adhd-always'), '');
 }
 
 function setup() {
@@ -150,6 +168,10 @@ function exportBack() {
   const list = JSON.parse(run('claude', ['plugin', 'list', '--json'], { quiet: true }).out || '[]');
   const plugins = list.filter((p) => p.scope === 'user' && p.enabled).map((p) => p.id).sort();
   fs.writeFileSync(path.join(repo, 'plugins.txt'), ['# plugin@marketplace, one per line.', ...plugins].join('\n') + '\n');
+  const markets = JSON.parse(run('claude', ['plugin', 'marketplace', 'list', '--json'], { quiet: true }).out || '[]')
+    .filter((m) => m.source === 'github' && plugins.some((p) => p.endsWith('@' + m.name)))
+    .map((m) => `${m.name} ${m.repo}`).sort();
+  fs.writeFileSync(path.join(repo, 'marketplaces.txt'), ['# <marketplace name> <github owner/repo>', ...markets].join('\n') + '\n');
   run('git', ['status', '--short'], { cwd: repo });
   console.log('Review, then: git commit -am "Update setup" && git push');
 }

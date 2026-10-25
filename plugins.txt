@@ -1,6 +1,9 @@
 # plugin@marketplace, one per line.
 claude-md-management@claude-plugins-official
 context7@claude-plugins-official
+i-have-adhd@i-have-adhd
+ponytail@ponytail
 pyright-lsp@claude-plugins-official
 security-guidance@claude-plugins-official
+taste-skill@taste-skill
 typescript-lsp@claude-plugins-official

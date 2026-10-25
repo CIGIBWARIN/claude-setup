@@ -91,3 +91,8 @@ These parts of ECC were skipped on purpose:
 | context7 | Up-to-date library docs from a hosted Upstash service. Authorize it with `/mcp`. |
 | security-guidance | Warns on risky patterns as you edit, and runs an LLM security review at the end of each turn. Needs Python 3.10+. |
 | claude-md-management | Audits and maintains CLAUDE.md files. |
+| [i-have-adhd](https://github.com/ayghri/i-have-adhd) | ADHD-friendly replies: the next action comes first, steps are numbered, the current state is restated, and progress is visible. The installer turns it on for every session by creating `~/.claude/.i-have-adhd-always`. Delete that file to go back to turning it on with `/i-have-adhd`, or say "stop adhd mode" to turn it off for one session. |
+| [ponytail](https://github.com/DietrichGebert/ponytail) | Keeps Claude from over-engineering: no abstractions or libraries you didn't ask for, and the stdlib first. It logs each task's cost to a local CSV in `~/.config/ponytail/`. Its webhook is off unless you configure one. |
+| [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for websites and app screens. It pulls images from open collections with no API key and checks pages in a real browser (Chrome or Edge, Node 22+). It replaces Anthropic's frontend-design plugin. |
+
+Plugins from outside the official marketplace come from the GitHub repos listed in `marketplaces.txt`. Project installs also record those repos in `.claude/settings.json` so cloud sessions can resolve them.
