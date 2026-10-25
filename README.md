@@ -78,6 +78,14 @@ You don't need to learn Claude Code first. Claude does the pro moves itself, lik
 
 Every few months, try a task with `claude --bare` (no hooks, plugins or LSP) and keep only what still helps.
 
+## Removing it
+
+Most of what gets installed is shared: Git, Node, Python, Claude Code, the language servers (about 60 MB) and the plugin files (about 8 MB). Every project uses the same copy, so nothing is downloaded twice. Each project adds only `.claude/settings.json`.
+
+- **Remove it from one project:** run `npx -y github:CIGIBWARIN/claude-setup --remove` in that folder. Your own settings in that file are kept.
+- **Deleted a project folder?** Run `npx -y github:CIGIBWARIN/claude-setup --prune` to clear the plugin entries it left behind. `/toolkit:update` also does this.
+- **Remove it from the whole machine:** run `npx -y github:CIGIBWARIN/claude-setup --remove --user`. The shared tools stay installed, since other programs may use them.
+
 ## Customize
 
 - **Plugins:** edit `plugins.txt`. For third-party plugins, also add their source to `marketplaces.txt`.

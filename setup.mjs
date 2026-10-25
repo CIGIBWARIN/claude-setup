@@ -7,6 +7,8 @@
 //
 // Options: --no-tools    skip Python / language-server installs
 //          --no-plugins  skip plugin installs
+//          --remove      undo the setup for this project (with --user: for the machine)
+//          --prune       forget plugin registrations of project folders that were deleted
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -118,10 +120,47 @@ function applySettings(file) {
   fs.writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
 }
 
+// --remove: undo this setup for the current project (or with --user, for the machine). Shared tools stay installed.
+function remove(scope, cwd) {
+  for (const p of readList('plugins.txt')) run('claude', ['plugin', 'uninstall', p, '--scope', scope], { quiet: true, cwd });
+  const file = scope === 'user' ? path.join(userClaude, 'settings.json') : path.join(cwd, '.claude', 'settings.json');
+  if (!fs.existsSync(file)) return;
+  const settings = readJson(file);
+  for (const p of readList('plugins.txt')) delete settings.enabledPlugins?.[p];
+  for (const [name] of readList('marketplaces.txt').map((l) => l.split(/\s+/))) delete settings.extraKnownMarketplaces?.[name];
+  for (const k of Object.keys(readJson(path.join(repo, 'settings.json')).env ?? {})) delete settings.env?.[k];
+  for (const k of ['enabledPlugins', 'extraKnownMarketplaces', 'env']) if (settings[k] && !Object.keys(settings[k]).length) delete settings[k];
+  if (scope !== 'user' && !Object.keys(settings).length) fs.rmSync(file);
+  else fs.writeFileSync(file, JSON.stringify(settings, null, 2) + '\n');
+}
+
+// --prune: drop plugin registrations left behind by project folders that were deleted.
+function prune() {
+  const file = path.join(userClaude, 'plugins', 'installed_plugins.json');
+  if (!fs.existsSync(file)) return console.log('Nothing to prune.');
+  const data = readJson(file);
+  let dropped = 0;
+  for (const [id, installs] of Object.entries(data.plugins ?? {})) {
+    data.plugins[id] = installs.filter((i) => !i.projectPath || fs.existsSync(i.projectPath) || !++dropped);
+    if (!data.plugins[id].length) delete data.plugins[id];
+  }
+  if (dropped) {
+    fs.copyFileSync(file, file + '.bak');
+    fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+  }
+  console.log(`Pruned ${dropped} plugin registrations for deleted projects.${dropped ? ' Backup: installed_plugins.json.bak' : ''}`);
+}
+
 const userMode = has('--user');
+if (has('--prune')) { prune(); process.exit(0); }
 if (!userMode && path.resolve(process.cwd()) === path.resolve(os.homedir())) {
   console.error('You are in your home folder; use --user for a machine-wide install, or cd into a project first.');
   process.exit(1);
+}
+if (has('--remove')) {
+  remove(userMode ? 'user' : 'project', process.cwd());
+  console.log('Removed claude-setup from ' + (userMode ? 'this machine' : 'this project') + '. Shared tools (Node, Python, Git, language servers) were left installed.');
+  process.exit(0);
 }
 if (!has('--no-tools')) installTools();
 if (!has('--no-plugins')) installPlugins(userMode ? 'user' : 'project', process.cwd());
