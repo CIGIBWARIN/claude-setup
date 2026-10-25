@@ -29,7 +29,7 @@ Skip this section unless the current folder has `.claude-plugin/marketplace.json
 2. **ECC upstream:** compare `plugins/toolkit/ecc-commit.txt` against `affaan-m/ECC` HEAD for the files we adapted (`tdd-workflow`, `verification-loop`, `build-fix`, `build-error-resolver`, `silent-failure-hunter`). Port only real fixes. Keep our trims: no coverage targets and no report files.
 3. **New Claude Code built-ins:** read the recent release notes (`claude --version`, then the changelog). If a built-in now does what one of our skills, rules or plugins does, propose removing ours.
 4. **Weight check:** run `claude plugin details <name>` for each plugin to see its token cost. Propose trimming anything heavy that doesn't earn its place. Every few months, suggest a test session with `claude --bare`.
-5. **Official marketplace:** look for new free plugins with no account requirement that clearly beat something here. Propose at most one, with the reason.
+5. **New resources:** look through the official marketplace and popular community skills for free options with no account requirement that clearly beat something here. Core is only for things nearly every session uses. Anything niche goes in `plugins/toolkit/skills/specialize/packs.md`. Propose at most one core change, and check that every pack in `packs.md` still installs.
 
 Then:
 

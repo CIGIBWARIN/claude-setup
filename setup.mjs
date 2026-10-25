@@ -82,12 +82,19 @@ async function installTools() {
   if (needFfmpeg || needYtDlp) console.log('Installing video tools for /watch: ' + [needFfmpeg && 'ffmpeg', needYtDlp && 'yt-dlp'].filter(Boolean).join(', '));
   if (isWin && onPath('winget')) {
     if (needFfmpeg) winget('Gyan.FFmpeg.Essentials');
-    if (needYtDlp) winget('yt-dlp.yt-dlp');
-  } else if (process.platform === 'darwin' && onPath('brew')) {
-    if (needFfmpeg || needYtDlp) run('brew', ['install', ...(needFfmpeg ? ['ffmpeg'] : []), ...(needYtDlp ? ['yt-dlp'] : [])]);
+    // Without --skip-dependencies winget adds a second 500 MB FFmpeg and Deno; we already have both jobs covered.
+    if (needYtDlp) winget('yt-dlp.yt-dlp', ['--skip-dependencies']);
   } else if (!isWin) {
-    if (needFfmpeg && process.platform === 'linux') linuxInstall('ffmpeg');
+    if (needFfmpeg && process.platform === 'darwin' && onPath('brew')) run('brew', ['install', 'ffmpeg']);
+    else if (needFfmpeg && process.platform === 'linux') linuxInstall('ffmpeg');
     if (needYtDlp) await installYtDlp();
+  }
+  // yt-dlp needs a JavaScript runtime for some sites (YouTube). Point it at the Node we already have instead of adding Deno.
+  const ytConf = isWin ? path.join(process.env.APPDATA ?? '', 'yt-dlp', 'config.txt') : path.join(os.homedir(), '.config', 'yt-dlp', 'config');
+  const conf = fs.existsSync(ytConf) ? fs.readFileSync(ytConf, 'utf8') : '';
+  if (!conf.includes('--js-runtimes')) {
+    fs.mkdirSync(path.dirname(ytConf), { recursive: true });
+    fs.appendFileSync(ytConf, `${conf && !conf.endsWith('\n') ? '\n' : ''}--js-runtimes node\n`);
   }
   const binFor = { pyright: 'pyright', 'typescript-language-server': 'typescript-language-server', typescript: 'tsc' };
   const missing = readList('npm-globals.txt').filter((p) => !onPath(binFor[p] ?? p));

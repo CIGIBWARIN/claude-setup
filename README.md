@@ -1,12 +1,12 @@
 # claude-setup
 
-**A Claude Code add-on for new vibecoders.** Install it with one command, and [Claude Code](https://claude.com/claude-code) builds like a seasoned developer from day one. It plans before big changes, checks its work before calling it done, and skips the test slop and doc bloat. It coaches you with one-line tips as you go. Start building, not configuring.
+**The one add-on to install for every Claude Code session.** [Claude Code](https://claude.com/claude-code) isn't only for coding. People use it to build apps and websites, write and edit content, research, analyze data, design, and automate busywork, anywhere working on real files beats a chat window. This add-on covers the 90% that matters in all of those. Claude plans before big changes, checks its work before calling it done, skips slop, watches videos, writes like a person, and coaches you as you go. Then it adapts itself to each project.
 
-One command makes Claude Code noticeably better, and then it adapts itself to each project. The setup is deliberately small, because every extra rule or skill costs context in every session, and outdated instructions hold newer models back.
+It's deliberately small. Every extra rule or skill costs context in every session, and outdated instructions make newer models worse. So the core stays lean, and anything specialized is added per project, only where it fits.
 
 ## Install
 
-Run this in the folder you want Claude to work in. It first installs anything that's missing: Git, Node.js, Claude Code, Python, and language servers.
+Run this in the folder you want Claude to work in. It first installs anything that's missing: Git, Node.js, Python, Claude Code, ffmpeg and yt-dlp for video, and language servers.
 
 **Windows (PowerShell):**
 ```
@@ -18,81 +18,139 @@ irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1 |
 curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash
 ```
 
-A project install writes only `.claude/settings.json`. Commit it to get the same setup in cloud sessions and for teammates.
-
-To set up every project on the machine instead, add `--user`:
-
-- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user`
-- **macOS / Linux:** `... | bash -s -- --user`
-
-After installing:
+Then:
 
 1. Restart Claude.
 2. If Claude Code was installed fresh, run `claude` once to sign in.
 3. Run `/mcp` once to authorize Context7.
 
-To update, run the same command again.
+A project install writes only `.claude/settings.json`. Commit it so cloud sessions and teammates get the same setup.
 
-## Then type one command
+To set up every folder on the machine instead, add `--user`:
 
-| Project | Run | What happens |
+- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user`
+- **macOS / Linux:** `... | bash -s -- --user`
+
+**To update,** run the same command again, or `/toolkit:update`.
+
+## Your first command
+
+Claude offers the right one when you open a project, so you don't need to remember any of them.
+
+| Situation | Command | What happens |
 |---|---|---|
-| New, or an empty folder | `/toolkit:kickoff` | Asks what you're building, picks the simplest stack, and builds a first version that works and is proven to run. |
-| Existing, possibly messy | `/toolkit:cleanup` | Saves a restore point first. Then it fixes dead code, over-engineering, test slop, doc bloat, silent failures and hardcoded secrets, one verified commit at a time. |
-| Any project, every few weeks | `/toolkit:update` | Updates Claude Code and the plugins, and refreshes the project's CLAUDE.md. |
+| Empty folder or new idea | `/toolkit:kickoff` | Asks what you're making (an app, writing, research, data or design). Picks the simplest setup, and produces a real first result. |
+| Existing project (recommended first step) | `/toolkit:specialize` | Tailors Claude to the project. It writes a short CLAUDE.md with the real commands or workflow, turns off plugins you don't need, suggests packs that fit, and turns tasks you repeat into project skills. |
+| Older code that needs fixing | `/toolkit:cleanup` | Saves a restore point, then fixes dead code, over-engineering, test slop, doc bloat, silent failures and hardcoded secrets. Each fix is verified and committed separately. |
+| Every few weeks | `/toolkit:update` | Updates Claude Code and the plugins, cleans up after deleted projects, and checks that CLAUDE.md still matches the project. |
 
-Claude offers the right one the first time it opens a project.
+## How it works
 
-## What makes the difference
+### When a session starts
 
-These are the habits that separate a great result in 45 minutes from 4 hours of slop. Each one is built in:
+The `guardrails` plugin adds a short set of rules to the session. Together with the coaching below, they come to about 1,000 tokens:
 
-| Habit | Where |
+- **Done means verified.** Claude runs the narrowest check that proves something works, and says what it couldn't verify.
+- **Simplest solution first.** Before writing code, Claude asks whether there's a simpler way.
+- **Ask, don't guess.** Claude asks one question at a time when a request is ambiguous.
+- **No test slop.** Tests only for things that can break, and no coverage targets.
+- **No doc bloat.** No new doc files unless you ask. Docs stay in proportion to the change.
+
+Helper agents that Claude starts get the same rules.
+
+### Coaching
+
+Claude does the pro move itself when it can. When a move needs you, it adds one `Tip:` line at the end of a reply. You get at most one tip per reply, and Claude never repeats a tip in the same session.
+
+| When | Claude does or suggests |
 |---|---|
-| **A target, and a way to check it.** Claude pins a concrete target (reference images, the exact expected output, or a number), then loops: build, look at the real output, compare, fix. | `/toolkit:build-to-target` |
-| **Done means verified.** Before saying something works, Claude runs the narrowest check that proves it, and says what it couldn't verify. | `guardrails` rules |
-| **A lean CLAUDE.md for each project, learned from your sessions.** Claude detects the stack and writes the verified commands. It also turns off plugins the project doesn't use, and turns tasks you repeat into project skills. Claude offers this automatically in any project without a CLAUDE.md. | `/toolkit:specialize` |
-| **Simplest solution first.** Before writing code, Claude asks whether there's a simpler way. | `guardrails` rules |
-| **No test slop or doc sprawl.** Claude writes tests only for what can break, with no coverage targets, and adds no new doc files unless you ask. | `guardrails` |
-| **Ask, don't guess.** When a request is ambiguous, Claude asks one question at a time until it's confident. | `guardrails` rules |
+| A big or vague task | Writes a plan first. Tip: Shift+Tab twice for plan mode. |
+| You switch to an unrelated task | Tip: `/clear` |
+| The chat gets long | Tip: `/compact` |
+| Visual work with no target | Asks for a screenshot or reference, then uses build-to-target. |
+| Something works (in git) | Offers to commit a checkpoint. |
+| Before shipping | Tip: `/code-review`, `/security-review`, `/toolkit:launch-check` |
+| A vague bug report | Asks for the exact error or a screenshot. |
+| You share a video | Watches it with `/watch`. |
+| Writing for others | Polishes it with humanizer. |
+| A file Claude can't see | Tip: drag it into the chat. |
+| The same task a second time | Offers to save it as a skill. Tip: `/schedule` for recurring work. |
 
-Helper agents get the same rules.
+### Project nudges
 
-## Plugins
+Each session, Claude may make one offer, chosen by the folder's state:
 
-| Plugin | Why |
+| Folder state | Claude offers |
 |---|---|
-| `guardrails` (this repo) | The rules above, plus a nudge when Claude creates a doc file you didn't ask for. |
-| `toolkit` (this repo) | `build-to-target`, `specialize`, and `verification-loop`. These run only when you call them: `/kickoff`, `/cleanup`, `/update` (in this repo it also reviews upstream changes), `/launch-check` (a 20-item pre-launch website checklist) and `/tdd-workflow`. Also `/build-fix` for minimal build fixes, and a silent-failure-hunter agent. |
-| `pyright-lsp`, `typescript-lsp` | Show type errors right after each edit. `specialize` turns them off in projects that don't use the language. |
-| `context7` | Up-to-date library docs for the version you're using, so Claude invents fewer APIs. |
-| `security-guidance` | Warns about risky code patterns on each edit. Commits and pushes are reviewed with Sonnet. Its per-turn Opus review (about 30k tokens a turn) is turned off in `settings.json`. |
-| [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for web UI, with real images and a check in a real browser. Web projects only. |
+| Empty | `/toolkit:kickoff` |
+| No CLAUDE.md | `/toolkit:specialize`, or `/toolkit:cleanup` for older code |
+| CLAUDE.md older than 30 days | `/toolkit:update` |
+| Your home folder, or a drive root | nothing |
+
+### While you work
+
+- **Doc nudge:** when Claude creates a typical unrequested doc (a summary, guide, notes, changelog or `docs/` page), it's reminded to keep it only if you asked. Article drafts and other files stay untouched.
+- **security-guidance:** warns about risky code as it's written, and reviews each commit and push.
+- **Language servers:** show type errors right after each edit to Python or TypeScript/JavaScript.
+
+## What's included
+
+| Plugin | What it does |
+|---|---|
+| `guardrails` (this repo) | The rules, the coaching, and the nudges above. |
+| `toolkit` (this repo) | Run only when you call them: `/kickoff`, `/specialize`, `/cleanup`, `/update`, `/launch-check` (20-item website pre-launch checklist) and `/tdd-workflow`. Always available: `/build-to-target` (pin a target, then loop build, look, compare, fix), `/verification-loop`, and `/build-fix`, plus a silent-failure-hunter agent. |
+| [watch](https://github.com/bradautomates/claude-video) | `/watch <link or file>`. Claude watches a video through frames and a transcript, locally, with no account needed. |
+| [humanizer](https://github.com/blader/humanizer) | Removes the signs of AI writing from posts, emails and pages. |
+| `context7` | Up-to-date docs for the libraries you use, so Claude invents fewer APIs. |
+| `security-guidance` | Risky-code warnings, plus commit and push reviews on Sonnet. Its per-turn Opus review (about 30k tokens a turn) is turned off in `settings.json`. |
+| `pyright-lsp`, `typescript-lsp` | Type errors after each edit. `specialize` turns them off where they aren't used. |
+| [taste-skill](https://github.com/Leonxlnx/taste-skill) | Art direction for web pages and app screens, checked in a real browser. |
 | [i-have-adhd](https://github.com/ayghri/i-have-adhd) | Answers lead with the next action, steps are numbered, and progress stays visible. It's always on. Say "stop adhd mode" to turn it off for a session, or delete `~/.claude/.i-have-adhd-always` to make it on-demand. |
+
+If you sign in with a Claude account, Claude Code usually also has Anthropic's own skills: Word, Excel, PowerPoint and PDF files, deep research, and a skill creator. This repo doesn't duplicate those, or built-ins like `/code-review`, `/security-review`, `/simplify`, `/schedule` and plan mode.
+
+### Optional packs
+
+`/toolkit:specialize` suggests these only when a project fits, and installs them in that project alone:
+
+- **Marketing and copy:** marketingskills.
+- **Trend research:** last30days, covering Reddit, Hacker News, YouTube and more.
+- **Obsidian vaults:** obsidian-skills.
+- **Data files:** duckdb.
+- **Video creation:** HyperFrames.
+- **Business roles:** Anthropic's sales, finance, legal, product and small-business plugins.
+
+The full list is in [`packs.md`](plugins/toolkit/skills/specialize/packs.md).
+
+## Cost and privacy
 
 Everything runs on your Claude subscription's usage limits, and nothing is billed separately. Don't set `ANTHROPIC_API_KEY`, which would switch Claude Code to API billing.
 
-## No learning curve
+Some parts go online:
 
-You don't need to learn Claude Code first. Claude does the pro moves itself, like planning big tasks, committing checkpoints that work, and asking for a screenshot when it needs one. When a move needs you, Claude adds a one-line **Tip** at the right moment, for example to `/clear` when you switch tasks, `/compact` when the chat gets long, or `/code-review` before you ship. You get at most one tip per reply, and Claude never repeats one in the same session.
+- **Context7** looks up library names.
+- **`/watch`** downloads the video you give it.
+- **Taste** fetches free images and fonts.
+- **security-guidance** reviews commits through your Claude sign-in.
 
-Every few months, try a task with `claude --bare` (no hooks, plugins or LSP) and keep only what still helps.
+Nothing else sends your files anywhere.
 
 ## Removing it
 
-Most of what gets installed is shared: Git, Node, Python, Claude Code, the language servers (about 60 MB) and the plugin files (about 8 MB). Every project uses the same copy, so nothing is downloaded twice. Each project adds only `.claude/settings.json`.
+Shared tools are installed once per machine: Git, Node, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Each project adds only `.claude/settings.json`.
 
 - **Remove it from one project:** run `npx -y github:CIGIBWARIN/claude-setup --remove` in that folder. Your own settings in that file are kept.
 - **Deleted a project folder?** Run `npx -y github:CIGIBWARIN/claude-setup --prune` to clear the plugin entries it left behind. `/toolkit:update` also does this.
-- **Remove it from the whole machine:** run `npx -y github:CIGIBWARIN/claude-setup --remove --user`. The shared tools stay installed, since other programs may use them.
+- **Remove it from the whole machine:** run `npx -y github:CIGIBWARIN/claude-setup --remove --user`. The shared tools stay installed.
 
 ## Customize
 
 - **Plugins:** edit `plugins.txt`. For third-party plugins, also add their source to `marketplaces.txt`.
-- **Rules:** edit `plugins/guardrails/rules.md`.
+- **Rules:** edit `plugins/guardrails/rules.md`. For coaching, edit `coach.md`.
+- **Packs:** edit `plugins/toolkit/skills/specialize/packs.md`.
 - **Environment defaults:** edit `settings.json`. Values already set on a machine take priority.
 
-Then push, and re-run the install command on each machine.
+Then push, and re-run the install command on each machine. Every few months, try a session with `claude --bare` (no plugins), and keep only what still helps.
 
 ## License
 
