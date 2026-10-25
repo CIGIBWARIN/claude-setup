@@ -1,6 +1,7 @@
 ---
 name: tdd-workflow
-description: "Test-driven development workflow: write a failing test first, watch it fail, implement the smallest change to green, then refactor with 80%+ coverage across unit, integration, and E2E tests. Use when writing a new feature, fixing a bug, refactoring, or when told to write failing tests first."
+description: "Test-driven development workflow: write a failing test first, watch it fail, implement the smallest change to green, then refactor. Use only when the user asks for TDD or tests-first."
+disable-model-invocation: true
 argument-hint: <path/to/*.plan.md>
 metadata:
   origin: ECC
@@ -43,11 +44,10 @@ Do not treat the plan as permission to skip TDD. The plan supplies intent and ta
 ### 1. Tests BEFORE Code
 ALWAYS write tests first, then implement code to make tests pass.
 
-### 2. Coverage Requirements
-- Minimum 80% coverage (unit + integration + E2E)
-- All edge cases covered
-- Error scenarios tested
-- Boundary conditions verified
+### 2. Test What Can Break
+- One focused test per behavior that could realistically break
+- Cover the edge cases and error paths that matter, not every permutation
+- Coverage is a signal, not a target; never pad tests to hit a number
 
 ### 3. Test Types
 
@@ -220,7 +220,7 @@ Recommended commit message format:
 ### Step 7: Verify Coverage
 ```bash
 <coverage>
-# Verify 80%+ coverage achieved
+# Check coverage for untested risky paths (no fixed target)
 ```
 
 ### Step 8: Write a TDD Evidence Report
@@ -571,7 +571,7 @@ test('updates user', () => {
 
 ## Success Metrics
 
-- 80%+ code coverage achieved
+- Risky paths covered by tests
 - All tests passing (green)
 - No skipped or disabled tests
 - Fast test execution (< 30s for unit tests)

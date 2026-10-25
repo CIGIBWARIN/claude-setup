@@ -1,5 +1,6 @@
 # <marketplace name> <github owner/repo>
 claude-plugins-official anthropics/claude-plugins-official
+claude-setup CIGIBWARIN/claude-setup
 i-have-adhd ayghri/i-have-adhd
 ponytail DietrichGebert/ponytail
 taste-skill Leonxlnx/taste-skill

@@ -63,7 +63,7 @@ set -o pipefail
 npm run test -- --coverage 2>&1 | tail -50
 
 # Check coverage threshold
-# Target: 80% minimum
+# Report gaps in risky paths; no fixed threshold
 ```
 
 Report:

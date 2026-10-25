@@ -1,6 +1,6 @@
 ---
 name: python-testing
-description: Python testing strategies using pytest, TDD methodology, fixtures, mocking, parametrization, and coverage requirements. Use when writing pytest tests — fixtures, mocks, parametrization, or coverage.
+description: Python testing strategies using pytest, TDD methodology, fixtures, mocking and parametrization. Use when writing pytest tests — fixtures, mocks, parametrization, or coverage.
 metadata:
   origin: ECC
 ---
@@ -41,8 +41,8 @@ def add(a, b):
 
 ### Coverage Requirements
 
-- **Target**: 80%+ code coverage
-- **Critical paths**: 100% coverage required
+- **No fixed target**: coverage is a signal for untested risky paths
+- **Critical paths** (money, auth, parsing, data loss) get tests first
 - Use `pytest --cov` to measure coverage
 
 ```bash
@@ -653,7 +653,7 @@ class TestUserService:
 - **Use fixtures**: Eliminate duplication with fixtures
 - **Mock external dependencies**: Don't depend on external services
 - **Test edge cases**: Empty inputs, None values, boundary conditions
-- **Aim for 80%+ coverage**: Focus on critical paths
+- **Test what can break**: focus on critical paths, skip trivial code
 - **Keep tests fast**: Use marks to separate slow tests
 
 ### DON'T
