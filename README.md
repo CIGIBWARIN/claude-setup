@@ -2,28 +2,44 @@
 
 My Claude Code setup: subagents, slash commands, skills, a rule, and plugins. The same command works on Windows, macOS, and Linux.
 
-## Install
+## Install (one step, nothing needed beforehand)
 
-You need Node.js 20.12 or newer and Claude Code.
+Run the command in the folder you want Claude to work in. It writes `./.claude`; commit that folder so cloud sessions and other machines get the setup too.
 
-**Set up the folder you're in** (writes `./.claude`). Commit that folder so cloud sessions and other machines get it too:
-
+**Windows (PowerShell):**
 ```
-npx -y github:CIGIBWARIN/claude-setup
-```
-
-**Set up every project on this machine** (writes `~/.claude`):
-
-```
-npx -y github:CIGIBWARIN/claude-setup --user
+irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1 | iex
 ```
 
-What it does:
+**macOS / Linux:**
+```
+curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash
+```
+
+**Set up every project on this machine instead** (writes `~/.claude`):
+```
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --user
+curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.sh | bash -s -- --user
+```
+
+If you already have Node.js 20.12 or newer, `npx -y github:CIGIBWARIN/claude-setup [--user]` does the same thing on any OS.
+
+Anything missing is installed automatically:
+
+| | Windows | macOS / Linux |
+|---|---|---|
+| Git (Claude Code needs it on Windows) | winget | not needed |
+| Node.js | winget (LTS) | private copy in `~/.local/share/claude-setup-node`, checksum-verified, no sudo |
+| Claude Code | official installer | official installer |
+| Python 3.10+ (for security-guidance) | winget | Homebrew on macOS; apt, dnf, pacman, zypper, or apk on Linux (asks for sudo) |
+| Language servers | npm | npm |
+
+Then the installer:
 
 1. Copies the agents, commands, skills, and rule into the target folder.
-2. Installs Python 3.10+ if it's missing (winget on Windows, Homebrew on macOS; on Linux it prints the command to run).
-3. Installs the `pyright` and `typescript-language-server` language servers through npm.
-4. Installs the plugins at project or user scope, to match the mode.
+2. Installs the plugins at project or user scope, to match the mode.
+
+If Claude Code was installed fresh, run `claude` once to sign in.
 
 When it's done, restart Claude and run `/mcp` once to authorize Context7.
 
