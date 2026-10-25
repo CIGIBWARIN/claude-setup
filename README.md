@@ -4,7 +4,7 @@ My Claude Code setup: subagents, slash commands, skills, a rule, and plugins. Th
 
 ## Install
 
-You need Node.js 20.12 or newer and Claude Code. Because the repo is private, git also has to be signed in to GitHub. If it isn't, run `gh auth login` and then `gh auth setup-git`.
+You need Node.js 20.12 or newer and Claude Code.
 
 **Set up the folder you're in** (writes `./.claude`). Commit that folder so cloud sessions and other machines get it too:
 
