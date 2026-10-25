@@ -1,4 +1,4 @@
-# plugin@marketplace, one per line. Installed at user scope by setup.ps1.
+# plugin@marketplace, one per line.
 claude-md-management@claude-plugins-official
 context7@claude-plugins-official
 pyright-lsp@claude-plugins-official

@@ -1,0 +1,10 @@
+{
+  "name": "claude-setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "My Claude Code setup: agents, skills, commands, plugins",
+  "type": "module",
+  "bin": { "claude-setup": "setup.mjs" },
+  "engines": { "node": ">=20.12" },
+  "files": ["setup.mjs", "home", "managed-paths.txt", "plugins.txt", "npm-globals.txt", "ECC-LICENSE.txt"]
+}
