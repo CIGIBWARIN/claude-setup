@@ -84,16 +84,24 @@ function installTools() {
       console.log('  Python installed; restart your terminal / Claude so it is on PATH.');
     } else if (process.platform === 'darwin' && onPath('brew')) {
       run('brew', ['install', 'python@3.13']);
+    } else if (process.platform === 'linux') {
+      const sudo = process.getuid?.() === 0 ? '' : 'sudo ';
+      const pm = [['apt-get', 'apt-get update && ' + sudo + 'apt-get install -y python3'], ['dnf', 'dnf install -y python3'],
+        ['pacman', 'pacman -S --noconfirm python'], ['zypper', 'zypper install -y python3'], ['apk', 'apk add python3']].find(([b]) => onPath(b));
+      if (pm) run(sudo + pm[1], []);
+      else console.log('  Install Python 3.10+ with your package manager.');
     } else {
-      console.log('  Install it with your package manager, e.g.  sudo apt install python3');
+      console.log('  Install Python 3.10+ from https://www.python.org/downloads/');
     }
+    if (!findPython()) console.log('  Python still not found; security-guidance stays inactive until it is installed.');
   }
   const binFor = { pyright: 'pyright', 'typescript-language-server': 'typescript-language-server', typescript: 'tsc' };
   const missing = readList('npm-globals.txt').filter((p) => !onPath(binFor[p] ?? p));
   if (missing.length) {
     console.log(`Installing language servers: ${missing.join(', ')}`);
-    if (!run('npm', ['install', '-g', ...missing]).ok) {
-      console.log('  npm global install failed. On Linux/macOS you may need:  sudo npm install -g ' + missing.join(' '));
+    // A system-wide Node on Linux/macOS needs root for global installs; retry with sudo.
+    if (!run('npm', ['install', '-g', ...missing]).ok && !isWin && onPath('sudo')) {
+      run('sudo', ['npm', 'install', '-g', ...missing]);
     }
   }
 }
