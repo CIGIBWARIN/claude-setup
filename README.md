@@ -1,6 +1,6 @@
 # claude-setup
 
-**What am I looking at?** You've probably chatted with an AI like ChatGPT. [Claude Code](https://claude.com/claude-code) goes further: it works directly in the files on your computer. You describe what you want ("build me a website for my business") and it writes the code, runs it, and fixes it. Out of the box it can waste time and usage on sloppy extras. This repo is a free add-on you install with one command. It makes Claude work like an experienced developer and gives you tips as you go, so you don't have to learn anything first.
+**A Claude Code add-on for new vibecoders.** Install it with one command, and [Claude Code](https://claude.com/claude-code) builds like a seasoned developer from day one. It plans before big changes, checks its work before calling it done, and skips the test slop and doc bloat. It coaches you with one-line tips as you go. Start building, not configuring.
 
 One command makes Claude Code noticeably better, and then it adapts itself to each project. The setup is deliberately small, because every extra rule or skill costs context in every session, and outdated instructions hold newer models back.
 
