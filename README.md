@@ -53,7 +53,7 @@ Helper agents get the same rules.
 | Plugin | Why |
 |---|---|
 | `guardrails` (this repo) | The rules above, plus a nudge when Claude creates a doc file you didn't ask for. |
-| `toolkit` (this repo) | `build-to-target`, `specialize`, and `verification-loop`. `/tdd-workflow` and `/launch-check` (a 20-item pre-launch website checklist) run only when you call them. Also `/build-fix` for minimal build fixes, and a silent-failure-hunter agent. |
+| `toolkit` (this repo) | `build-to-target`, `specialize`, and `verification-loop`. `/tdd-workflow`, `/launch-check` (a 20-item pre-launch website checklist) and `/update` (updates Claude Code, plugins and your CLAUDE.md; in this repo it also reviews upstream changes) run only when you call them. Also `/build-fix` for minimal build fixes, and a silent-failure-hunter agent. |
 | `pyright-lsp`, `typescript-lsp` | Show type errors right after each edit. `specialize` turns them off in projects that don't use the language. |
 | `context7` | Up-to-date library docs for the version you're using, so Claude invents fewer APIs. |
 | `security-guidance` | Warns about risky code patterns on each edit. Commits and pushes are reviewed with Sonnet. Its per-turn Opus review (about 30k tokens a turn) is turned off in `settings.json`. |
