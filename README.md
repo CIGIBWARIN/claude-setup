@@ -75,3 +75,7 @@ Everything runs on your Claude subscription's usage limits, and nothing is bille
 - **Environment defaults:** edit `settings.json`. Values already set on a machine take priority.
 
 Then push, and re-run the install command on each machine.
+
+## License
+
+[MIT](LICENSE): free to use. If you republish or repackage it, keep the copyright notice. Some toolkit files come from [ECC](https://github.com/affaan-m/ECC), also MIT (`plugins/toolkit/LICENSE-ECC.txt`).

@@ -16,5 +16,6 @@
     "marketplaces.txt",
     "npm-globals.txt",
     "settings.json"
-  ]
+  ],
+  "license": "MIT"
 }
