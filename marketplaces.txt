@@ -3,5 +3,5 @@
 claude-plugins-official anthropics/claude-plugins-official
 claude-video bradautomates/claude-video#v0.3.2
 humanizer blader/humanizer#v3.1.0
-ingot CIGIBWARIN/ingot
+ingot CIGIBWARIN/ingot#stable
 taste-skill Leonxlnx/taste-skill#v2.1.5

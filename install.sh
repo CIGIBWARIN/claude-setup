@@ -78,9 +78,9 @@ fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-curl -fsSL https://codeload.github.com/CIGIBWARIN/ingot/tar.gz/refs/heads/main | tar -xz -C "$tmp"
+curl -fsSL https://codeload.github.com/CIGIBWARIN/ingot/tar.gz/refs/heads/stable | tar -xz -C "$tmp"
 # setup.mjs prints the closing block (done, or what is missing and how to fix it) and its exit code is ours.
-node "$tmp/ingot-main/setup.mjs" "$@"
+node "$tmp/ingot-stable/setup.mjs" "$@"
 }
 
 main "$@"

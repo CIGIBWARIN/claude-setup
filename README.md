@@ -186,7 +186,7 @@ Nothing else sends your files anywhere.
 
 - **Installed once per PC and shared by every project:** Git, Node.js 22 or newer, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Large tools are never copied into each project.
 - **Per project:** Claude adds only small files, such as `.claude/settings.json`, `CLAUDE.md` and `.claude/.ingot-checked`.
-- **Just the Ingot plugin,** without the other plugins and tools: type `/plugin install ingot --marketplace CIGIBWARIN/ingot` inside Claude.
+- **Just the Ingot plugin,** without the other plugins and tools: inside Claude, type `/plugin marketplace add CIGIBWARIN/ingot#stable`, then `/plugin install ingot@ingot`.
 - **If something fails,** the installer ends with a "Not installed:" list that says how to fix each item.
 
 ## Removing it
@@ -214,7 +214,7 @@ Ingot installs from this repo, so to customize it, fork it first and replace `CI
 
 Then push to your fork, and run your fork's install line again in each project. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
 
-**Maintainers:** `node evals/run.mjs` runs the evals on your subscription, and `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
+**Maintainers:** users get the `stable` branch, so work on `main` reaches nobody until it is released. GitHub runs `node evals/check.mjs` on every push. `node evals/run.mjs` runs the evals on your subscription. When both pass, release with `git push origin main:stable`. `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
 
 ## License
 

@@ -2,8 +2,8 @@
 // Cross-platform installer for Ingot, a Claude Code setup (Windows, macOS, Linux). No dependencies.
 // Everything is a plugin, so this only writes Claude settings files and updates come from `claude plugin update`.
 //
-//   npx -y github:CIGIBWARIN/ingot          turn Ingot on for the project in this folder (.claude/settings.json)
-//   npx -y github:CIGIBWARIN/ingot --user   turn it on for every project on this PC instead
+//   npx -y github:CIGIBWARIN/ingot#stable          turn Ingot on for the project in this folder (.claude/settings.json)
+//   npx -y github:CIGIBWARIN/ingot#stable --user   turn it on for every project on this PC instead
 // Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) and plugin downloads are installed once per PC either way.
 //
 // Options: --no-tools    skip Python / video tool / language-server installs

@@ -22,10 +22,11 @@ const opt = (name, fallback) => { const i = args.indexOf(name); return i < 0 ? f
 const ref = opt('--ref');
 const runs = opt('--runs', '1');
 // Runs started from inside the desktop app inherit its variables, so pick the surface Ingot's hook should see.
+// The eval runs reset CLAUDE_CODE_ENTRYPOINT but keep the app's version variable, so that one carries the choice.
 const surface = opt('--surface', 'cli');
-delete process.env.CLAUDE_CODE_DESKTOP_APP_VERSION;
-if (surface === 'desktop') process.env.CLAUDE_CODE_ENTRYPOINT = 'claude-desktop';
-else delete process.env.CLAUDE_CODE_ENTRYPOINT;
+delete process.env.CLAUDE_CODE_ENTRYPOINT;
+if (surface === 'desktop') process.env.CLAUDE_CODE_DESKTOP_APP_VERSION = 'eval';
+else delete process.env.CLAUDE_CODE_DESKTOP_APP_VERSION;
 const suites = [];
 while (args.length && !args[0].startsWith('-')) suites.push(args.shift());
 const all = fs.readdirSync(here, { withFileTypes: true }).filter((d) => d.isDirectory() && d.name !== 'results').map((d) => d.name);

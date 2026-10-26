@@ -8,8 +8,8 @@ description: Update Ingot, Claude Code, the plugins and shared tools, clear left
 ## 1. Everything shared
 
 1. Run `claude update`. This updates the terminal version of Claude Code. The desktop app has its own copy, so in the desktop app also tell the user to use Help > Check for Updates (Claude > Check for Updates on a Mac).
-2. In the project folder, run `npx -y github:CIGIBWARIN/ingot`. If `claude plugin list --json` shows `ingot@ingot` only at user scope (no project-scope entry for this folder), add `--user` so a PC-wide setup stays PC-wide. This re-runs the installer, which adds new plugins, removes retired ones, updates the rest along with yt-dlp and the language servers, and re-applies the defaults. In Windows PowerShell, use `npx.cmd`, because the default script policy blocks `npx`.
-3. Run `npx -y github:CIGIBWARIN/ingot --prune` to clear plugin entries left by deleted project folders.
+2. In the project folder, run `npx -y github:CIGIBWARIN/ingot#stable`. If `claude plugin list --json` shows `ingot@ingot` only at user scope (no project-scope entry for this folder), add `--user` so a PC-wide setup stays PC-wide. This re-runs the installer, which adds new plugins, removes retired ones, updates the rest along with yt-dlp and the language servers, and re-applies the defaults. In Windows PowerShell, use `npx.cmd`, because the default script policy blocks `npx`.
+3. Run `npx -y github:CIGIBWARIN/ingot#stable --prune` to clear plugin entries left by deleted project folders.
 4. If either command reports a "Not installed:" block, pass it on word for word.
 
 ## 2. This project (when inside one)

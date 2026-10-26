@@ -52,10 +52,10 @@ $setupArgs = $args
     New-Item -ItemType Directory -Path $tmp | Out-Null
     try {
         $zip = Join-Path $tmp 'repo.zip'
-        Invoke-WebRequest -UseBasicParsing https://codeload.github.com/CIGIBWARIN/ingot/zip/refs/heads/main -OutFile $zip
+        Invoke-WebRequest -UseBasicParsing https://codeload.github.com/CIGIBWARIN/ingot/zip/refs/heads/stable -OutFile $zip
         Expand-Archive -Path $zip -DestinationPath $tmp
         # setup.mjs prints the closing block (done, or what is missing and how to fix it) and sets $LASTEXITCODE.
-        & node (Join-Path $tmp 'ingot-main\setup.mjs') @setupArgs
+        & node (Join-Path $tmp 'ingot-stable\setup.mjs') @setupArgs
     } finally {
         Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
     }

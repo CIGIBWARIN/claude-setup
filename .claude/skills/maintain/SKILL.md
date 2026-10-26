@@ -32,4 +32,5 @@ Goal: one install that keeps Claude Code at its best for coding, content, agenti
    - Test the hooks by piping sample JSON into `node plugins/ingot/hooks/*.mjs`.
    - Run `node --check setup.mjs`.
    - If rules, coaching or skills changed, run `node evals/run.mjs ingot`.
-   - Commit and push only when the user says so.
+   - Commit and push only when the user says so. Pushing `main` reaches no users.
+7. **Release:** when `node evals/check.mjs`, the GitHub check and the affected evals pass, and the user says to release, run `git push origin main:stable`. Users get it the next time they run the install line or `/ingot:update`.
