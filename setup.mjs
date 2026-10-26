@@ -2,14 +2,15 @@
 // Cross-platform installer for Ingot, a Claude Code setup (Windows, macOS, Linux). No dependencies.
 // Everything is a plugin, so this only writes Claude settings files and updates come from `claude plugin update`.
 //
-//   npx -y github:CIGIBWARIN/ingot             set up every project on this machine
-//   npx -y github:CIGIBWARIN/ingot --project   same, plus this folder's .claude/settings.json (commit it)
+//   npx -y github:CIGIBWARIN/ingot          turn Ingot on for the project in this folder (.claude/settings.json)
+//   npx -y github:CIGIBWARIN/ingot --user   turn it on for every project on this PC instead
+// Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) and plugin downloads are installed once per PC either way.
 //
 // Options: --no-tools    skip Python / video tool / language-server installs
 //          --no-plugins  skip plugin installs
-//          --remove      undo the machine-wide setup (with --project: only this project's)
+//          --remove      turn Ingot off for this project (with --user: for the whole PC)
 //          --prune       forget plugin registrations of project folders that were deleted
-//          --user        same as the default (kept for older instructions)
+//          --project     same as the default (kept for older instructions)
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -246,6 +247,9 @@ function setupPlugins(scopes, cwd) {
     else if (!run('claude', ['plugin', 'marketplace', 'add', source]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${source}`);
   }
   const installed = claudeJson('plugin', 'list') ?? [];
+  // A PC-wide setup (from --user, or versions before per-project installs) is kept up to date too.
+  const ours = [...readList('plugins.txt'), ...readList('retired.txt')];
+  if (!scopes.includes('user') && installed.some((i) => i.scope === 'user' && ours.includes(i.id))) scopes.push('user');
   const missing = (p, scope) => fail(`${p} (${scope})`, `run: claude plugin install ${p} --scope ${scope}`);
   const targets = [];
   for (const scope of scopes) {
@@ -333,7 +337,7 @@ function applySettings(file, declareMarketplaces = false) {
   writeJson(file, settings);
 }
 
-// --remove: undo this setup for the machine (or with --project, for this project only). Shared tools stay installed.
+// --remove: turn this setup off for this project (or with --user, for the whole PC). Shared tools stay installed.
 function remove(scope, cwd) {
   if (onPath('claude')) {
     const installed = claudeJson('plugin', 'list') ?? [];
@@ -398,19 +402,33 @@ function finish(done, header = 'Not installed:') {
   process.exit(1);
 }
 
-const projectMode = has('--project');
+// Folders that hold files rather than being one project: the same ones the session hook never makes offers in.
+function notAProject(dir) {
+  const home = os.homedir();
+  const personal = [home, ...['Desktop', 'Documents', 'Downloads', 'OneDrive'].map((d) => path.join(home, d))];
+  return personal.some((p) => samePath(dir, p)) || samePath(dir, path.parse(path.resolve(dir)).root) || /[\\/]OneDrive[^\\/]*$/.test(dir);
+}
+
+const userMode = has('--user');
 const cwd = process.cwd();
 if (has('--prune')) finish(prune(), 'Not pruned:');
-if (projectMode && samePath(cwd, os.homedir())) {
-  console.error('You are in your home folder; --project needs a project folder. cd into one first, or leave out --project to set up the whole machine.');
+if (!userMode && notAProject(cwd)) {
+  console.error(`This folder (${cwd}) holds your files rather than one project.\n` +
+    'Open the terminal in a project folder first (for a new project, make a new empty folder), then run this again.\n' +
+    'To turn Ingot on for every project on this PC instead, add --user.');
   process.exit(1);
 }
 if (has('--remove')) {
-  remove(projectMode ? 'project' : 'user', cwd);
-  finish(`Removed Ingot from ${projectMode ? 'this project' : 'this machine'}. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.`, 'Not removed:');
+  remove(userMode ? 'user' : 'project', cwd);
+  const stillOn = !userMode && onPath('claude') && (claudeJson('plugin', 'list') ?? []).some((i) => i.id === 'ingot@ingot' && i.scope === 'user');
+  finish(`Removed Ingot from ${userMode ? 'every project on this PC' : 'this project'}. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.` +
+    (stillOn ? '\nIngot is still on for every project on this PC. To turn that off too, run this again with --user.' : ''), 'Not removed:');
 }
 if (!has('--no-tools')) await installTools();
-if (!has('--no-plugins')) setupPlugins(projectMode ? ['user', 'project'] : ['user'], cwd);
-applySettings(settingsFile('user', cwd));
-if (projectMode) applySettings(settingsFile('project', cwd), !has('--no-plugins'));
-finish('\nDone. Open a new terminal, type claude, press Enter.' + (projectMode ? '\nCommit .claude/settings.json so cloud sessions and teammates get the same setup.' : ''));
+// setupPlugins adds 'user' when a PC-wide setup already exists, so it stays current too.
+const scopes = [userMode ? 'user' : 'project'];
+if (!has('--no-plugins')) setupPlugins(scopes, cwd);
+for (const scope of scopes) applySettings(settingsFile(scope, cwd), scope === 'project' && !has('--no-plugins'));
+finish(userMode ? '\nDone. Ingot is on for every project on this PC. Open a new terminal, type claude, press Enter.'
+  : '\nDone. Ingot is on for this folder. Open a new terminal here and type claude, or open this folder in the desktop app\'s Code tab.' +
+    '\nIf the folder is in git, commit .claude/settings.json so teammates and cloud sessions get the same setup.');

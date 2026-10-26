@@ -7,7 +7,12 @@ import { fileURLToPath } from 'node:url';
 import { safeList, isCodeProject } from './project.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
+// The desktop app's Code tab swaps some terminal commands for its own menus. A line ending in {cli} or {desktop}
+// loads only there; CLAUDE_CODE_ENTRYPOINT isn't documented, so the app's version variable backs it up.
+const surface = process.env.CLAUDE_CODE_ENTRYPOINT === 'claude-desktop' || process.env.CLAUDE_CODE_DESKTOP_APP_VERSION ? 'desktop' : 'cli';
+const tag = / \{(cli|desktop)\}$/;
+const read = (f) => fs.readFileSync(path.join(root, f), 'utf8').split(/\r?\n/)
+  .filter((l) => !tag.test(l) || l.endsWith(`{${surface}}`)).map((l) => l.replace(tag, '')).join('\n');
 const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8').replace(/^﻿/, '')); } catch { return {}; } };
 
 // Settings come from env (settings.json "env") or, as a fallback, the settings files themselves.

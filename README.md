@@ -4,11 +4,12 @@
 
 ## Get started
 
-You install Ingot **once per computer**. It then works in every project, both in the terminal and in the Claude desktop app.
+Ingot is turned on **per project**: you run the install line inside each project folder. The big shared tools (Node.js, Python, Git, ffmpeg and the plugin downloads) are installed once per PC and reused, so the second project takes seconds. Ingot works in both the terminal and the Claude desktop app.
 
-1. **Open a normal terminal.** Any folder works, and you don't need admin.
-   - Windows: press Start, type PowerShell, and press Enter. Don't pick "Run as administrator".
-   - Mac: open Terminal.
+1. **Open a normal terminal in your project folder.** You don't need admin. For a new project, make an empty folder first.
+   - **Windows:** open the folder in File Explorer, right-click an empty spot, and choose "Open in Terminal". Don't pick "Run as administrator".
+   - **Mac:** open Terminal, type `cd ` (with a space), drag the folder into the window, and press Enter.
+   - **Desktop app:** open the folder in the Code tab, then open its terminal pane with Ctrl+` (backtick).
 2. **Paste the line for your system and press Enter.** It installs anything that's missing.
 
    **Windows:**
@@ -21,27 +22,45 @@ You install Ingot **once per computer**. It then works in every project, both in
    ```
    - **Windows** may show a permission prompt if it needs to install Git or Node.js. Click Yes.
    - **Mac / Linux** may ask for your password if it needs a system package such as Python or ffmpeg. Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
-3. **Open a project.**
-   - **Terminal:** open a new terminal in the project folder, type `claude` and press Enter. If Claude Code was just installed, it asks you to sign in once.
-   - **Desktop app:** open the Code tab and choose the project folder.
+3. **Start Claude in that folder.**
+   - **Terminal:** open a new terminal in the folder, type `claude` and press Enter. If Claude Code was just installed, it asks you to sign in once.
+   - **Desktop app:** start a new session in the Code tab with that folder.
 
-Claude then offers `/ingot:start` once in each project.
+Claude then offers `/ingot:start`, which tunes it to the project.
+
+The installer writes the setup into the project's `.claude/settings.json`. If the project is in git, commit that file, and teammates and cloud sessions get the same setup.
 
 ## Which command, when
 
 | You want to | Run | Where |
 |---|---|---|
-| Set up a computer | the install line above | any folder |
-| Tune Claude to a project | `/ingot:start` inside Claude (Claude offers it) | in the project |
-| Share the setup with teammates and cloud sessions | the install line with `--project` (see below), then commit `.claude/settings.json` | in the project folder |
-| Update everything | the install line again, or `/ingot:update` inside Claude | any folder |
-| Change the reply style or coaching | `/ingot:settings` inside Claude | anywhere |
-| Remove Ingot | `npx -y github:CIGIBWARIN/ingot --remove` | any folder |
+| Turn Ingot on for a project | the install line | in the project folder |
+| Tune Claude to that project | `/ingot:start` inside Claude (Claude offers it) | in the project |
+| Update | the install line again, or `/ingot:update` inside Claude | in the project folder |
+| Change the reply style or coaching | `/ingot:settings` inside Claude | in any project with Ingot |
+| Turn Ingot off for a project | `npx -y github:CIGIBWARIN/ingot --remove` | in the project folder |
+| Turn Ingot on for every project on this PC | the install line with `--user` (see below) | any folder |
 
-None of these need admin. With `--project`, the install line looks like this:
+None of these need admin. The installer refuses to run in your home, Desktop, Documents or Downloads folder, because those hold many projects rather than one. With `--user`, the install line looks like this:
 
-- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --project`
-- **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --project`
+- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --user`
+- **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --user`
+
+To turn a PC-wide setup off again, use `--remove --user`.
+
+## Terminal and desktop app
+
+Ingot works the same way in both, because they share the same settings, plugins and project files. The differences are in the app itself:
+
+| | Terminal (`claude`) | Desktop app (Code tab) |
+|---|---|---|
+| Coaching tips | name slash commands, such as `/plan`, `/clear` and `/model` | name the app's menus and shortcuts instead, such as the mode menu (Ctrl+Shift+M), New session (Ctrl+N) and the model picker |
+| Spinner tips while Claude works | shown | not shown |
+| Updating Claude Code | `claude update` (or `/ingot:update`) | Help > Check for Updates (Claude > Check for Updates on a Mac); the app has its own copy |
+| Screenshots | paste with Ctrl+V (Alt+V on Windows) | drag them in or use the + button |
+| Extras | `claude -p` for scripts | browser, diff and terminal panes, scheduled tasks, side chats |
+
+The desktop app doesn't load plugins in WSL sessions, so open Windows folders directly instead.
 
 ## One command: `/ingot:start`
 
@@ -95,7 +114,7 @@ On top of those come the project's category rules, coaching, the reply style and
 | `full` (default) | the core habits: also `/compact`, `/clear` between tasks, `@`-mentioning files, screenshots for visual work, `/watch`, checkpoint commits, `/security-review`, and saving repeated tasks as skills |
 | `extra` | any slash command that fits the moment, such as `/rewind`, `/btw`, `/context`, `/model`, `/goal` or `/loop`, up to two tips per reply |
 
-Habits that don't need timing appear as spinner tips while Claude works, which costs no context. One example: Esc twice undoes Claude's last steps.
+In the terminal, habits that don't need timing appear as spinner tips while Claude works, which costs no context. One example: Esc twice undoes Claude's last steps.
 
 **Reply style.** `lite` is the default: the answer comes first, steps are numbered, progress is said plainly. `core` is a full ADHD-friendly set, with the next action first, state restated each turn, visible wins and lists of 5 items at most. `off` turns both off.
 
@@ -160,15 +179,16 @@ Nothing else sends your files anywhere.
 
 ## Install details
 
-- **Installed once per device and shared by every project:** Git, Node.js 22 or newer, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Large tools are never copied into each project.
+- **Installed once per PC and shared by every project:** Git, Node.js 22 or newer, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Large tools are never copied into each project.
 - **Per project:** Claude adds only small files, such as `.claude/settings.json`, `CLAUDE.md` and `.claude/.ingot-checked`.
 - **Just the Ingot plugin,** without the other plugins and tools: type `/plugin install ingot --marketplace CIGIBWARIN/ingot` inside Claude.
 - **If something fails,** the installer ends with a "Not installed:" list that says how to fix each item.
 
 ## Removing it
 
-- **Remove it from the device:** `npx -y github:CIGIBWARIN/ingot --remove`. Shared tools like Node and Python stay installed.
-- **Remove it from one project:** run `npx -y github:CIGIBWARIN/ingot --remove --project` in that folder. Your own settings in that file are kept.
+- **Turn it off for one project:** run `npx -y github:CIGIBWARIN/ingot --remove` in that folder. Your own settings in that file are kept.
+- **Turn off a PC-wide setup (`--user`):** `npx -y github:CIGIBWARIN/ingot --remove --user`.
+- Shared tools like Node and Python stay installed either way.
 - **After deleting project folders:** `npx -y github:CIGIBWARIN/ingot --prune` clears their leftover plugin entries. `/ingot:update` also does this.
 
 ## Customize
@@ -181,9 +201,9 @@ Nothing else sends your files anywhere.
 | Coaching | `plugins/ingot/coach/*.md` |
 | Reply styles | `plugins/ingot/style/*.md` |
 | Packs | `plugins/ingot/skills/specialize/packs.md` |
-| Defaults and spinner tips | `settings.json` (values already set on a device take priority) |
+| Defaults and spinner tips | `settings.json` (values already set in a project take priority) |
 
-Then push, and run the install line again on each device. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
+Then push, and run the install line again in each project. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
 
 **Maintainers:** `node evals/run.mjs` runs the evals on your subscription, and `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
 

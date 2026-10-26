@@ -7,8 +7,8 @@ description: Bring Ingot up to date. It updates Claude Code, the plugins, the sh
 
 ## 1. Everything shared
 
-1. Run `claude update`.
-2. Run `npx -y github:CIGIBWARIN/ingot`. This re-runs the installer, which adds new plugins, removes retired ones, updates the rest along with yt-dlp and the language servers, and re-applies the defaults.
+1. Run `claude update`. This updates the terminal version of Claude Code. The desktop app has its own copy, so in the desktop app also tell the user to use Help > Check for Updates (Claude > Check for Updates on a Mac).
+2. In the project folder, run `npx -y github:CIGIBWARIN/ingot`. This re-runs the installer for this project (and for the whole PC too, if Ingot was set up with `--user`). It adds new plugins, removes retired ones, updates the rest along with yt-dlp and the language servers, and re-applies the defaults.
 3. Run `npx -y github:CIGIBWARIN/ingot --prune` to clear plugin entries left by deleted project folders.
 4. If either command reports a "Not installed:" block, pass it on word for word.
 
