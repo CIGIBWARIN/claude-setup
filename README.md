@@ -137,6 +137,8 @@ Nothing else sends your files anywhere.
 
 ## Removing it
 
+**Rule:** anything large is installed once per device and shared by every project, never copied into each one. A project only gets small files like `.claude/settings.json` and CLAUDE.md, so deleting the folder removes everything that belonged to it. The project's own dependencies, such as a `venv` or `node_modules`, are the only exception, and claude-setup doesn't create those.
+
 Shared tools are installed once per machine: Git, Node, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Each project adds only `.claude/settings.json`.
 
 - **Remove it from one project:** run `npx -y github:CIGIBWARIN/claude-setup --remove` in that folder. Your own settings in that file are kept.
