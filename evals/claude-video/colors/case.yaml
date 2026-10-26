@@ -10,9 +10,11 @@ execution:
 context:
   add_dirs: [media]
 graders:
-  - type: tool_used
+  - name: used-skill
+    type: tool_used
     tool: Skill
     input_match: '"skill"\s*:\s*"(?:watch:)?watch"'
-  - type: llm
+  - name: colors-and-length
+    type: llm
     weight: 2
     criteria: PASS if the reply says the screen is red, then green, then blue, and that the video is about 9 seconds long (8 to 10 is fine). FAIL otherwise.
