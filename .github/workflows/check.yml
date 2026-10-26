@@ -1,0 +1,35 @@
+# Checks that need no Claude sign-in, on every push and pull request. The evals (evals/run.mjs) run on a
+# maintainer's subscription instead, because they would need an API key here.
+name: check
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax, JSON, lists and hooks
+        run: node evals/check.mjs
+      - name: Bootstrap scripts parse
+        shell: pwsh
+        run: |
+          $errs = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/install.ps1", [ref]$null, [ref]$errs) | Out-Null
+          if ($errs) { $errs | ForEach-Object { Write-Error $_.Message }; exit 1 }
+      - name: install.sh parses
+        if: runner.os == 'Linux'
+        run: bash -n install.sh
+      - name: Plugin manifests validate
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          ~/.local/bin/claude plugin validate .
