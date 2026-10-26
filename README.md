@@ -4,8 +4,10 @@
 
 ## Get started
 
-1. **Open a terminal.**
-   - Windows: press Start, type PowerShell, and press Enter.
+You install Ingot **once per computer**. It then works in every project, both in the terminal and in the Claude desktop app.
+
+1. **Open a normal terminal.** Any folder works, and you don't need admin.
+   - Windows: press Start, type PowerShell, and press Enter. Don't pick "Run as administrator".
    - Mac: open Terminal.
 2. **Paste the line for your system and press Enter.** It installs anything that's missing.
 
@@ -17,9 +19,29 @@
    ```
    curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash
    ```
-3. **Open a new terminal in your project folder, type `claude` and press Enter.** If Claude Code was just installed, it asks you to sign in once.
+   - **Windows** may show a permission prompt if it needs to install Git or Node.js. Click Yes.
+   - **Mac / Linux** may ask for your password if it needs a system package such as Python or ffmpeg. Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
+3. **Open a project.**
+   - **Terminal:** open a new terminal in the project folder, type `claude` and press Enter. If Claude Code was just installed, it asks you to sign in once.
+   - **Desktop app:** open the Code tab and choose the project folder.
 
-Claude then offers `/ingot:start` once. To update later, run the same line again, or type `/ingot:update` inside Claude.
+Claude then offers `/ingot:start` once in each project.
+
+## Which command, when
+
+| You want to | Run | Where |
+|---|---|---|
+| Set up a computer | the install line above | any folder |
+| Tune Claude to a project | `/ingot:start` inside Claude (Claude offers it) | in the project |
+| Share the setup with teammates and cloud sessions | the install line with `--project` (see below), then commit `.claude/settings.json` | in the project folder |
+| Update everything | the install line again, or `/ingot:update` inside Claude | any folder |
+| Change the reply style or coaching | `/ingot:settings` inside Claude | anywhere |
+| Remove Ingot | `npx -y github:CIGIBWARIN/ingot --remove` | any folder |
+
+None of these need admin. With `--project`, the install line looks like this:
+
+- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --project`
+- **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --project`
 
 ## One command: `/ingot:start`
 
@@ -140,9 +162,6 @@ Nothing else sends your files anywhere.
 
 - **Installed once per device and shared by every project:** Git, Node.js 22 or newer, Python, Claude Code, ffmpeg and yt-dlp (about 330 MB), the language servers (about 60 MB) and the plugin files. Large tools are never copied into each project.
 - **Per project:** Claude adds only small files, such as `.claude/settings.json`, `CLAUDE.md` and `.claude/.ingot-checked`.
-- **Default scope:** the installer sets up the whole device. Add `--project` to also write the setup into the current folder's `.claude/settings.json`. Commit that file so cloud sessions and teammates get the same setup. The forms are:
-  - **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --project`
-  - **macOS / Linux:** `... | bash -s -- --project`
 - **Just the Ingot plugin,** without the other plugins and tools: type `/plugin install ingot --marketplace CIGIBWARIN/ingot` inside Claude.
 - **If something fails,** the installer ends with a "Not installed:" list that says how to fix each item.
 - **Coming from claude-setup:** run the install line again. It replaces the old `guardrails` and `toolkit` plugins with `ingot` and keeps your settings.

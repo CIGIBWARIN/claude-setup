@@ -14,6 +14,12 @@ case "$(uname -s)" in
   *) echo "On Windows, use install.ps1 from PowerShell instead." >&2; exit 1 ;;
 esac
 
+# Under sudo, Claude Code and its settings would be set up for root instead of the user.
+if [ "$(id -u)" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
+  echo "Run this without sudo. It asks for your password itself if it needs to install something." >&2
+  exit 1
+fi
+
 # macOS has only a stub git until the Apple developer tools are installed, and that install needs the user's click.
 if [ "$os" = darwin ] && ! xcode-select -p >/dev/null 2>&1; then
   xcode-select --install >/dev/null 2>&1 || true
