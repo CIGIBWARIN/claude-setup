@@ -164,7 +164,6 @@ Nothing else sends your files anywhere.
 - **Per project:** Claude adds only small files, such as `.claude/settings.json`, `CLAUDE.md` and `.claude/.ingot-checked`.
 - **Just the Ingot plugin,** without the other plugins and tools: type `/plugin install ingot --marketplace CIGIBWARIN/ingot` inside Claude.
 - **If something fails,** the installer ends with a "Not installed:" list that says how to fix each item.
-- **Coming from claude-setup:** run the install line again. It replaces the old `guardrails` and `toolkit` plugins with `ingot` and keeps your settings.
 
 ## Removing it
 
