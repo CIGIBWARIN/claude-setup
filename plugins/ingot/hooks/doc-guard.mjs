@@ -11,7 +11,8 @@ process.stdin.on('end', () => {
   try {
     const { tool_input: ti = {}, tool_response: tr = {} } = JSON.parse(input);
     const file = String(ti.file_path || tr.filePath || '');
-    const p = file.replace(/\\/g, '/').toLowerCase();
+    // Desktop app sessions can run in <repo>/.claude/worktrees/<name>/; judge files by their path inside the worktree.
+    const p = file.replace(/\\/g, '/').toLowerCase().replace(/^.*\/\.claude\/worktrees\/[^/]+\//, '/');
     const name = path.posix.basename(p);
     if (tr.type !== 'create' || !/\.(md|mdx|rst|txt)$/.test(name) || !isCodeProject()) return;
     // Claude's own files (plans, memory, skills) and scratch files are not project docs.

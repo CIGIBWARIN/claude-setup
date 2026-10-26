@@ -22,9 +22,10 @@ Ingot is turned on **per project**: you run the install line inside each project
    ```
    - **Windows** may show a permission prompt if it needs to install Git or Node.js. Click Yes.
    - **Mac / Linux** may ask for your password if it needs a system package such as Python or ffmpeg. Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
+   - **Mac:** installing Python and ffmpeg needs [Homebrew](https://brew.sh). Install it first if you don't have it.
 3. **Start Claude in that folder.**
    - **Terminal:** open a new terminal in the folder, type `claude` and press Enter. If Claude Code was just installed, it asks you to sign in once.
-   - **Desktop app:** start a new session in the Code tab with that folder.
+   - **Desktop app:** start a new session in the Code tab with that folder. If the installer just installed Node.js or Git, quit the app completely and reopen it first, so it can find them.
 
 Claude then offers `/ingot:start`, which tunes it to the project.
 
@@ -38,10 +39,10 @@ The installer writes the setup into the project's `.claude/settings.json`. If th
 | Tune Claude to that project | `/ingot:start` inside Claude (Claude offers it) | in the project |
 | Update | the install line again, or `/ingot:update` inside Claude | in the project folder |
 | Change the reply style or coaching | `/ingot:settings` inside Claude | in any project with Ingot |
-| Turn Ingot off for a project | `npx -y github:CIGIBWARIN/ingot --remove` | in the project folder |
-| Turn Ingot on for every project on this PC | the install line with `--user` (see below) | any folder |
+| Turn Ingot off for a project | the install line with `--remove` (see below) | in the project folder |
+| Turn Ingot on for every project on this PC | the install line with `--user` | any folder |
 
-None of these need admin. The installer refuses to run in your home, Desktop, Documents or Downloads folder, because those hold many projects rather than one. With `--user`, the install line looks like this:
+None of these need admin. The installer refuses to run in your home, Desktop, Documents or Downloads folder, because those hold many projects rather than one. To add an option such as `--user` or `--remove`, the install line looks like this:
 
 - **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --user`
 - **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --user`
@@ -190,12 +191,16 @@ Nothing else sends your files anywhere.
 
 ## Removing it
 
-- **Turn it off for one project:** run `npx -y github:CIGIBWARIN/ingot --remove` in that folder. Your own settings in that file are kept.
-- **Turn off a PC-wide setup (`--user`):** `npx -y github:CIGIBWARIN/ingot --remove --user`.
+Each of these is the install line with options added, as shown in [Which command, when](#which-command-when).
+
+- **Turn it off for one project:** add `--remove`, in that folder. Your own settings in that file are kept. If Ingot is also on PC-wide, it is switched off for just this project.
+- **Turn off a PC-wide setup (`--user`):** add `--remove --user`. Projects you set up one by one keep working.
 - Shared tools like Node and Python stay installed either way.
-- **After deleting project folders:** `npx -y github:CIGIBWARIN/ingot --prune` clears their leftover plugin entries. `/ingot:update` also does this.
+- **After deleting project folders:** add `--prune` to clear their leftover plugin entries. `/ingot:update` also does this.
 
 ## Customize
+
+Ingot installs from this repo, so to customize it, fork it first and replace `CIGIBWARIN/ingot` with your fork in `install.ps1`, `install.sh` and `marketplaces.txt`.
 
 | To change | Edit |
 |---|---|
@@ -207,7 +212,7 @@ Nothing else sends your files anywhere.
 | Packs | `plugins/ingot/skills/specialize/packs.md` |
 | Defaults and spinner tips | `settings.json` (values already set in a project take priority) |
 
-Then push, and run the install line again in each project. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
+Then push to your fork, and run your fork's install line again in each project. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
 
 **Maintainers:** `node evals/run.mjs` runs the evals on your subscription, and `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
 

@@ -22,11 +22,13 @@ const args = process.argv.slice(2);
 const has = (flag) => args.includes(flag);
 const isWin = process.platform === 'win32';
 const isRoot = process.getuid?.() === 0;
-const userClaude = path.join(os.homedir(), '.claude');
+// Claude Code keeps its config in CLAUDE_CONFIG_DIR when that is set.
+const userClaude = process.env.CLAUDE_CONFIG_DIR ? path.resolve(process.env.CLAUDE_CONFIG_DIR) : path.join(os.homedir(), '.claude');
 const adhdFlag = path.join(userClaude, '.i-have-adhd-always');
-const localYtDlp = path.join(os.homedir(), '.local', 'bin', 'yt-dlp');
-// Claude Code's native installer and our yt-dlp both land in ~/.local/bin, which may not be on PATH yet.
-if (!isWin) process.env.PATH = `${path.dirname(localYtDlp)}${path.delimiter}${process.env.PATH}`;
+const localBin = path.join(os.homedir(), '.local', 'bin');
+const localYtDlp = path.join(localBin, 'yt-dlp');
+// Claude Code's native installer (on every OS) and our yt-dlp land in ~/.local/bin, which may not be on PATH yet.
+process.env.PATH = `${localBin}${path.delimiter}${process.env.PATH}`;
 
 // Everything that didn't work, as item -> how to fix it; printed together at the end.
 const failures = new Map();
@@ -88,8 +90,24 @@ function readJson(file) {
 
 function writeJson(file, data) {
   if (unreadable.has(file)) return;
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+  } catch (e) {
+    unreadable.add(file);
+    fail(file, `could not write it (${e.code}); clear its Read-only setting or fix its permissions, then run this command again`);
+  }
+}
+
+// A read-only settings file (OneDrive, a locked checkout) would make every plugin install fail one by one.
+function writable(file) {
+  try {
+    if (fs.existsSync(file)) fs.accessSync(file, fs.constants.W_OK);
+    return true;
+  } catch {
+    fail(file, 'is read-only; clear its Read-only setting or fix its permissions, then run this command again');
+    return false;
+  }
 }
 
 function onPath(cmd) {
@@ -107,7 +125,8 @@ function findPython() {
 // winget writes the new PATH to the registry only; reload it so re-checks see what was just installed.
 function refreshPath() {
   if (!isWin) return;
-  const r = run('powershell', ['-NoProfile', '-Command', `"[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`], { quiet: true });
+  // UTF-8 output, or folders under a non-ASCII user name (C:\Users\Jürgen) come back garbled.
+  const r = run('powershell', ['-NoProfile', '-Command', `"[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`], { quiet: true });
   if (r.ok && r.out) process.env.PATH = `${r.out};${process.env.PATH}`;
 }
 
@@ -136,7 +155,10 @@ function linuxInstall(pkg, what, archPkg = pkg) {
 
 // yt-dlp's own release binary: distro packages are often too old to download from current sites.
 async function installYtDlp() {
-  const asset = process.platform === 'darwin' ? 'yt-dlp_macos' : process.arch === 'arm64' ? 'yt-dlp_linux_aarch64' : 'yt-dlp_linux';
+  // musl systems such as Alpine can't run the glibc builds.
+  const musl = process.platform === 'linux' && !process.report?.getReport().header.glibcVersionRuntime;
+  const asset = process.platform === 'darwin' ? 'yt-dlp_macos'
+    : `yt-dlp_${musl ? 'musllinux' : 'linux'}${process.arch === 'arm64' ? '_aarch64' : ''}`;
   const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${asset}`;
   fs.mkdirSync(path.dirname(localYtDlp), { recursive: true });
   try {
@@ -152,13 +174,22 @@ async function installYtDlp() {
   if (fs.existsSync(localYtDlp)) fs.chmodSync(localYtDlp, 0o755);
 }
 
+// pip and pipx also put a yt-dlp in ~/.local/bin (a script or a link), and `yt-dlp -U` refuses to update those.
+function standaloneYtDlp() {
+  try {
+    return !fs.lstatSync(localYtDlp).isSymbolicLink() && fs.readFileSync(localYtDlp).subarray(0, 2).toString() !== '#!';
+  } catch {
+    return false;
+  }
+}
+
 // Sites break old yt-dlp versions quickly, so every run updates the copy we installed.
 function updateYtDlp(hasWinget) {
   if (hasWinget) {
     const r = run('winget', ['upgrade', '--id', 'yt-dlp.yt-dlp', '--skip-dependencies', '--silent', '--accept-package-agreements', '--accept-source-agreements'], { quiet: true });
     // No newer version / not installed through winget / version unknown: nothing to update.
     if (!r.ok && ![0x8a15002b, 0x8a150014, 0x8a150050].includes(r.code >>> 0)) fail('yt-dlp (update)', 'run: winget upgrade --id yt-dlp.yt-dlp');
-  } else if (!isWin && fs.existsSync(localYtDlp) && !run(`"${localYtDlp}"`, ['--ignore-config', '-U'], { quiet: true }).ok) {
+  } else if (!isWin && standaloneYtDlp() && !run(`"${localYtDlp}"`, ['--ignore-config', '-U'], { quiet: true }).ok) {
     fail('yt-dlp (update)', `run: ${localYtDlp} -U`);
   }
 }
@@ -247,19 +278,28 @@ function setupPlugins(scopes, cwd) {
     else if (!run('claude', ['plugin', 'marketplace', 'add', source]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${source}`);
   }
   const installed = claudeJson('plugin', 'list') ?? [];
+  // Whether Ingot itself (or the claude-setup plugins before it) is installed at a scope. Only that marks a setup as
+  // ours: the other plugins in plugins.txt are popular, and the user may have installed them on their own.
+  const ingotAt = (scope) => installed.some((i) => (i.id === 'ingot@ingot' || i.id.endsWith('@claude-setup')) &&
+    isInstalled(installed, i.id, scope, cwd));
   // A PC-wide setup (from --user, or versions before per-project installs) is kept up to date too.
-  const ours = [...readList('plugins.txt'), ...readList('retired.txt')];
-  if (!scopes.includes('user') && installed.some((i) => i.scope === 'user' && ours.includes(i.id))) scopes.push('user');
+  if (!scopes.includes('user') && ingotAt('user')) scopes.push('user');
   const missing = (p, scope) => fail(`${p} (${scope})`, `run: claude plugin install ${p} --scope ${scope}`);
   const targets = [];
   for (const scope of scopes) {
     const file = settingsFile(scope, cwd);
-    const enabled = readJson(file).enabledPlugins ?? {};
+    const settings = readJson(file);
+    const enabled = settings.enabledPlugins ?? {};
     // claude would rewrite a settings file we could not parse; that file is already reported.
-    if (unreadable.has(file)) continue;
-    // Plugins this setup used to ship: remove them so an update leaves no leftovers.
+    if (unreadable.has(file) || !writable(file)) continue;
+    // --remove leaves "ingot@ingot": false in a project while Ingot is still on PC-wide; installing again turns it back on.
+    if (scope === 'project' && enabled['ingot@ingot'] === false) {
+      delete enabled['ingot@ingot'];
+      writeJson(file, settings);
+    }
+    // Plugins this setup used to ship: remove them so an update leaves no leftovers, but only where it was set up.
     for (const p of readList('retired.txt')) {
-      if (!isInstalled(installed, p, scope, cwd)) continue;
+      if (!ingotAt(scope) || !isInstalled(installed, p, scope, cwd)) continue;
       console.log(`Removing retired plugin ${p}`);
       run('claude', ['plugin', 'uninstall', p, '--scope', scope], { quiet: true, cwd });
       // i-have-adhd was always-on only while this flag existed.
@@ -302,6 +342,10 @@ function repin(name, repoSlug, ref) {
   const now = (claudeJson('plugin', 'marketplace', 'list') ?? []).find((m) => m.name === name);
   if (now && (now.ref ?? '') === (ref ?? '')) return;
   const source = ref ? `${repoSlug}#${ref}` : repoSlug;
+  // Never trade a pin for another project's installs.
+  if ((claudeJson('plugin', 'list') ?? []).some((i) => i.scope === 'project' && i.id.endsWith(`@${name}`) && !samePath(i.projectPath ?? '', process.cwd()))) {
+    return fail(`marketplace ${name} (pin ${ref ?? 'latest'})`, `could not move the pin in place; run: claude plugin marketplace update ${name}, then run this command again`);
+  }
   run('claude', ['plugin', 'marketplace', 'remove', name], { quiet: true });
   if (!run('claude', ['plugin', 'marketplace', 'add', source]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${source}`);
 }
@@ -338,7 +382,9 @@ function applySettings(file, declareMarketplaces = false) {
 }
 
 // --remove: turn this setup off for this project (or with --user, for the whole PC). Shared tools stay installed.
+// Returns whether Ingot stays on here through a PC-wide setup.
 function remove(scope, cwd) {
+  let pcWide = false;
   if (onPath('claude')) {
     const installed = claudeJson('plugin', 'list') ?? [];
     for (const p of readList('plugins.txt')) {
@@ -346,27 +392,33 @@ function remove(scope, cwd) {
         fail(p, `run: claude plugin uninstall ${p} --scope ${scope}`);
       }
     }
-    // Machine-wide removal also forgets the third-party marketplaces this setup added.
+    pcWide = scope === 'project' && isInstalled(installed, 'ingot@ingot', 'user', cwd);
+    // Machine-wide removal also forgets the third-party marketplaces this setup added, unless a project still uses them
+    // (removing a marketplace uninstalls its plugins in every project).
     const known = scope === 'user' ? new Set((claudeJson('plugin', 'marketplace', 'list') ?? []).map((m) => m.name)) : new Set();
     for (const [name] of markets()) {
       if (name === 'claude-plugins-official' || !known.has(name)) continue;
+      if (installed.some((i) => i.scope === 'project' && i.id.endsWith(`@${name}`))) continue;
       if (!run('claude', ['plugin', 'marketplace', 'remove', name], { quiet: true }).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace remove ${name}`);
     }
   }
   // Left behind by versions that shipped i-have-adhd.
   if (scope === 'user') fs.rmSync(adhdFlag, { force: true });
   const file = settingsFile(scope, cwd);
-  if (!fs.existsSync(file)) return;
+  if (!fs.existsSync(file) && !pcWide) return false;
   const settings = readJson(file);
-  if (unreadable.has(file)) return;
+  if (unreadable.has(file)) return false;
   const ours = readJson(path.join(repo, 'settings.json'));
   for (const p of readList('plugins.txt')) delete settings.enabledPlugins?.[p];
+  // With Ingot also on PC-wide, switch it off here explicitly; the other plugins stay as the PC-wide setup has them.
+  if (pcWide) (settings.enabledPlugins ??= {})['ingot@ingot'] = false;
   for (const [name] of markets()) delete settings.extraKnownMarketplaces?.[name];
   for (const k of Object.keys(settings.env ?? {})) if (k in (ours.env ?? {}) || /^(INGOT|CLAUDE_SETUP)_/.test(k)) delete settings.env[k];
   if (JSON.stringify(settings.spinnerTipsOverride) === JSON.stringify(ours.spinnerTipsOverride)) delete settings.spinnerTipsOverride;
   for (const k of ['enabledPlugins', 'extraKnownMarketplaces', 'env']) if (settings[k] && !Object.keys(settings[k]).length) delete settings[k];
   if (scope !== 'user' && !Object.keys(settings).length) fs.rmSync(file);
   else writeJson(file, settings);
+  return pcWide;
 }
 
 // The drive or mount a path lives on. If it is missing (an unplugged disk), the folder may still exist.
@@ -402,15 +454,35 @@ function finish(done, header = 'Not installed:') {
   process.exit(1);
 }
 
-// Folders that hold files rather than being one project: the same ones the session hook never makes offers in.
+// Folders that hold files rather than being one project: the same ones the session hook never makes offers in,
+// plus Windows' own folders (an admin terminal opens in System32).
 function notAProject(dir) {
   const home = os.homedir();
   const personal = [home, ...['Desktop', 'Documents', 'Downloads', 'OneDrive'].map((d) => path.join(home, d))];
-  return personal.some((p) => samePath(dir, p)) || samePath(dir, path.parse(path.resolve(dir)).root) || /[\\/]OneDrive[^\\/]*$/.test(dir);
+  if (isWin) {
+    // Desktop and Documents may be moved (OneDrive backup) or have localized names (Bureaublad, Dokumente).
+    const r = run('powershell', ['-NoProfile', '-Command', `"[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Environment]::GetFolderPath('Desktop'); [Environment]::GetFolderPath('MyDocuments')"`], { quiet: true });
+    if (r.ok) personal.push(...r.out.split(/\r?\n/).filter(Boolean));
+  }
+  const system = isWin && process.env.SystemRoot && path.resolve(dir).toLowerCase().startsWith(path.resolve(process.env.SystemRoot).toLowerCase());
+  return system || personal.some((p) => samePath(dir, p)) || samePath(dir, path.parse(path.resolve(dir)).root) ||
+    /[\\/]OneDrive[^\\/]*([\\/](Desktop|Documents|Downloads|Pictures))?$/i.test(dir);
 }
 
 const userMode = has('--user');
 const cwd = process.cwd();
+// Under sudo, the plugins would go to root's config and the project would get a root-owned settings file.
+if (isRoot && process.env.SUDO_USER) {
+  console.error('Run this without sudo. It asks for your password itself if it needs to install something.');
+  process.exit(1);
+}
+// cmd.exe can't start in a network or WSL path (\\server\..., \\wsl.localhost\...), so every claude command would run in C:\Windows.
+if (isWin && cwd.startsWith('\\\\')) {
+  console.error('This folder is on a network or WSL path. Open it from a drive letter, or run the macOS/Linux install line inside WSL.');
+  process.exit(1);
+}
+// Picks up tools installed since this terminal opened, including Claude Code itself.
+refreshPath();
 if (has('--prune')) finish(prune(), 'Not pruned:');
 if (!userMode && notAProject(cwd)) {
   console.error(`This folder (${cwd}) holds your files rather than one project.\n` +
@@ -419,10 +491,9 @@ if (!userMode && notAProject(cwd)) {
   process.exit(1);
 }
 if (has('--remove')) {
-  remove(userMode ? 'user' : 'project', cwd);
-  const stillOn = !userMode && onPath('claude') && (claudeJson('plugin', 'list') ?? []).some((i) => i.id === 'ingot@ingot' && i.scope === 'user');
+  const stillOn = remove(userMode ? 'user' : 'project', cwd);
   finish(`Removed Ingot from ${userMode ? 'every project on this PC' : 'this project'}. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.` +
-    (stillOn ? '\nIngot is still on for every project on this PC. To turn that off too, run this again with --user.' : ''), 'Not removed:');
+    (stillOn ? '\nIngot stays on for your other projects (it was also set up for the whole PC). To turn that off too, run this again with --remove --user.' : ''), 'Not removed:');
 }
 if (!has('--no-tools')) await installTools();
 // setupPlugins adds 'user' when a PC-wide setup already exists, so it stays current too.

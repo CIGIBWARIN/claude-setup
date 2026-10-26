@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # One-step macOS/Linux bootstrap: installs anything missing (Node.js 22+, Claude Code), then runs setup.mjs.
 #   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash
-# With options (e.g. also write this folder's .claude/settings.json):
-#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --project
+# Run it in the project folder. With options (e.g. --user to turn Ingot on for every project on this PC):
+#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --user
 set -euo pipefail
 
 # Everything is inside main so bash has read the whole script before anything that might read stdin runs.
@@ -42,6 +42,11 @@ node_ok() { need node && node -e 'process.exit(+process.versions.node.split(".")
 
 # Node.js: a private copy in ~/.local/share (no sudo); its npm installs global packages there too.
 if ! node_ok; then
+  # The official Node builds need glibc; musl systems (Alpine) get Node from their own packages.
+  if [ "$os" = linux ] && ldd --version 2>&1 | grep -qi musl; then
+    echo "Node.js 22+ is needed. Run: apk add nodejs npm (as root), then run this command again." >&2
+    exit 1
+  fi
   echo "Installing Node.js 24 LTS into ~/.local/share/ingot-node..."
   base=https://nodejs.org/dist/latest-v24.x
   file=$(curl -fsSL "$base/SHASUMS256.txt" | awk -v f="-$os-$arch.tar.gz" '$2 ~ f"$" {print $2}')

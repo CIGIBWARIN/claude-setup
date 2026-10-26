@@ -22,7 +22,7 @@ Write the target down in 3 to 6 lines. If it's only a guess, ask once.
 
 ## 3. Look at the real output, never only the code
 
-- **Web UI or graphics:** use `/run` if the project has a run command. Otherwise, open it in a browser and take a screenshot: the built-in browser pane in the desktop app, the agent-browser CLI if installed, taste's inspector, or `chrome`/`msedge` `--headless --screenshot`. Check the console for errors.
+- **Web UI or graphics:** use `/run` if the project has a run command. Otherwise, open it in a browser and take a screenshot: the built-in browser pane in the desktop app, the agent-browser CLI if installed, taste's inspector, or a headless browser screenshot (`--headless --screenshot=<file> <url>`) using its full path: `"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"` on Windows, `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"` on a Mac, or `google-chrome`/`chromium` on Linux. Check the console for errors.
 - **Scripts and CLIs:** run them with the target inputs.
 - **Files** (docs, slides, data, video): open them and inspect the result.
 

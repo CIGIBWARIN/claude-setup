@@ -16,7 +16,7 @@ description: Ingot's entry point. Routes this folder to kickoff (empty), special
 | Folder state | Do |
 |---|---|
 | Empty | run `/ingot:kickoff` |
-| Has code that looks neglected, and the user wants it fixed (stray summary docs, dead files, failing build, no tests anywhere, secrets in code) | offer `/ingot:cleanup`, then `/ingot:specialize` |
+| Has code that looks neglected, and the user wants it fixed (stray summary docs, dead files, failing build, no tests anywhere, secrets in code) | offer `/ingot:cleanup` (it tunes the project first if needed) |
 | No tuning stamp | run `/ingot:specialize` |
 | Stamp older than 30 days | run `/ingot:update` |
 | Otherwise | show the status below |

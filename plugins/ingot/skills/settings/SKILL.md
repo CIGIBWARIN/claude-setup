@@ -15,4 +15,4 @@ disable-model-invocation: true
 
 1. **With no arguments,** show the current values from those files, using the defaults for anything unset. Then ask which one to change.
 2. **With arguments,** write each value to its file and keep every other setting. Reject any value not in the table.
-3. **Finish** by saying the change applies from the next session (a restart, or `/clear`).
+3. **Finish** by saying the change applies from the next session, after a restart.

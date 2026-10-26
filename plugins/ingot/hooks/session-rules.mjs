@@ -40,12 +40,15 @@ function categories() {
 function offer() {
   const cwd = path.resolve('.');
   const home = path.resolve(os.homedir());
-  const personal = ['Desktop', 'Documents', 'Downloads', 'OneDrive'].map((d) => path.join(home, d));
-  if (cwd === home || cwd === path.parse(cwd).root || personal.includes(cwd) || /[\\/]OneDrive[^\\/]*$/.test(cwd)) return '';
+  const personal = ['Desktop', 'Documents', 'Downloads', 'OneDrive'].map((d) => path.join(home, d).toLowerCase());
+  // OneDrive's folder backup moves Desktop and Documents to ~/OneDrive[ - Org]/Desktop and so on.
+  if (cwd === home || cwd === path.parse(cwd).root || personal.includes(cwd.toLowerCase()) ||
+    /[\\/]OneDrive[^\\/]*([\\/](Desktop|Documents|Downloads|Pictures))?$/i.test(cwd)) return '';
+  if (fs.existsSync('.claude/.ingot-declined')) return '';
   const files = safeList('.').filter((f) => !f.startsWith('.') && !['desktop.ini', 'Thumbs.db'].includes(f));
   const stamp = ['.claude/.ingot-checked', '.claude/.claude-setup-checked'].find((f) => fs.existsSync(f));
-  const say = (why) => `\n## This project\n- ${why}: offer \`/ingot:start\` once, early, in one line. If the user declines, create the empty file \`.claude/.ingot-checked\` so it isn't offered again.\n`;
-  if (files.length === 0) return say('The folder is empty, so it can start a new project of any kind');
+  const say = (why) => `\n## This project\n- ${why}: offer \`/ingot:start\` once, early, in one line. If the user declines, create the empty file \`.claude/.ingot-declined\` so it is never offered again here.\n`;
+  if (files.length === 0) return stamp ? '' : say('The folder is empty, so it can start a new project of any kind');
   if (!stamp) {
     const hasInstructions = ['CLAUDE.md', '.claude/CLAUDE.md', 'AGENTS.md', 'CLAUDE.local.md'].some((f) => fs.existsSync(f));
     return say(hasInstructions ? 'Ingot never tuned this project' : 'This project has no CLAUDE.md yet, so Ingot can tune Claude to it');

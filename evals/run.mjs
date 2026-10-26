@@ -84,7 +84,12 @@ for (const suite of chosen) {
       fs.rmSync(path.join(cases, c), { recursive: true });
       console.log(`${suite}/${c}: skipped, it needs a shell tool, which evals only allow on macOS, Linux or WSL`);
     }
-    if (!fs.readdirSync(cases).length) continue;
+    // A suite with nothing left to run must not pass, or a pin could move untested.
+    if (!fs.readdirSync(cases).length) {
+      failed++;
+      console.log(`${suite}: NOT RUN (its cases need macOS, Linux or WSL)\n`);
+      continue;
+    }
     const json = path.join(results, `${suite}.json`);
     const code = sh(['claude plugin eval', `"${dir}"`, '--eval-dir ingot-evals', `--output-dir "${path.join(tmp, 'out')}"`, `--runs ${runs}`, '--trust-plugin', '--no-publish',
       `--allow-tools Write Edit${shellOk ? ' Bash' : ''}`, `--json "${json}"`, `--report "${path.join(results, `${suite}.html`)}"`, ...args].join(' '));

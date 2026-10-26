@@ -1,7 +1,7 @@
 # One-step Windows bootstrap: installs anything missing (Git, Node.js 22+, Claude Code), then runs setup.mjs.
 #   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1 | iex
-# With options (e.g. also write this folder's .claude/settings.json):
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --project
+# Run it in the project folder. With options (e.g. --user to turn Ingot on for every project on this PC):
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --user
 # Works in Windows PowerShell 5.1 and PowerShell 7.
 # The body runs in its own scope so `iex` doesn't leave settings or functions behind in the caller's shell.
 $setupArgs = $args
@@ -13,10 +13,11 @@ $setupArgs = $args
     # taste-skill needs Node 22 or newer.
     function Test-Node { (Test-Command 'node') -and ([int]((node -v) -replace '^v(\d+).*', '$1') -ge 22) }
 
+    # Saved PATH first, so new installs win; this window's own entries (fnm, conda, nvm) are kept after it.
     function Update-SessionPath {
         $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
                     [Environment]::GetEnvironmentVariable('Path', 'User') + ';' +
-                    (Join-Path $env:USERPROFILE '.local\bin')
+                    (Join-Path $env:USERPROFILE '.local\bin') + ';' + $env:Path
     }
 
     # Re-checks afterwards, so a missing winget or a failed install always ends with the manual download link.
@@ -32,8 +33,13 @@ $setupArgs = $args
     # Claude Code on Windows needs Git for Windows (it uses Git Bash).
     if (-not (Test-Command 'git')) { Invoke-Winget 'install' 'Git.Git' 'Git' 'https://git-scm.com/download/win' { Test-Command 'git' } }
     if (-not (Test-Node)) {
-        $verb = if (Test-Command 'node') { 'upgrade' } else { 'install' }
-        Invoke-Winget $verb 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node }
+        # An older Node from nvm-windows, fnm, Volta or Scoop isn't winget's to upgrade, so fall back to a fresh install.
+        if (Test-Command 'node') {
+            try { Invoke-Winget 'upgrade' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
+            catch { Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
+        } else {
+            Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node }
+        }
     }
     if (-not (Test-Command 'claude')) {
         Write-Host 'Installing Claude Code...'
