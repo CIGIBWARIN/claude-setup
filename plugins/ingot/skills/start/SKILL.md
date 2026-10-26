@@ -1,6 +1,6 @@
 ---
 name: start
-description: Ingot's one entry point. Looks at the current folder and does the right thing. An empty folder starts a new project (kickoff), a project Ingot hasn't tuned gets tuned (specialize), older messy code can be cleaned up (cleanup), and a project last tuned over 30 days ago gets refreshed (update). Otherwise it shows Ingot's status. Use when the user says start, set up, or "what should I do here", or accepts Ingot's offer.
+description: Ingot's entry point. Routes this folder to kickoff (empty), specialize (not tuned), cleanup (messy code) or update (tuned over 30 days ago), else shows status. Use when the user says start or set up, asks what to do here, or accepts Ingot's offer.
 ---
 
 # Ingot start

@@ -103,7 +103,7 @@ Until a project has been specialized, Claude assumes coding if it finds code, an
 - **Only what was asked.**
 - **Ask once, with batched questions, when it really matters.**
 
-On top of those come the project's category rules, coaching, the reply style and at most one project offer. With the defaults that is about 600 to 700 tokens. With every category, the `core` style and `extra` coaching it tops out near 1,700. Helper agents that Claude starts get only three lines (about 80 tokens).
+On top of those come the project's category rules, coaching, the reply style and at most one project offer. With the defaults that is about 700 to 850 tokens, plus about 350 for the short descriptions of Ingot's commands that Claude Code lists. With every category, the `core` style and `extra` coaching it tops out near 1,800 plus that list. Helper agents that Claude starts get only three lines (about 80 tokens).
 
 **Coaching.** Claude does the pro move itself when it can. When a move needs you, it ends a reply with a `Tip:` line, and only when that tip's moment has just happened. Each tip appears at most once per session. There are four levels:
 
@@ -114,7 +114,7 @@ On top of those come the project's category rules, coaching, the reply style and
 | `full` (default) | the core habits: also `/compact`, `/clear` between tasks, `@`-mentioning files, screenshots for visual work, `/watch`, checkpoint commits, `/security-review`, and saving repeated tasks as skills |
 | `extra` | any slash command that fits the moment, such as `/rewind`, `/btw`, `/context`, `/model`, `/goal` or `/loop`, up to two tips per reply |
 
-In the terminal, habits that don't need timing appear as spinner tips while Claude works, which costs no context. One example: Esc twice undoes Claude's last steps.
+In the terminal, habits that don't need timing appear as spinner tips while Claude works, which costs no context. One example: Esc twice undoes Claude's file edits.
 
 **Reply style.** `lite` is the default: the answer comes first, steps are numbered, progress is said plainly. `core` is a full ADHD-friendly set, with the next action first, state restated each turn, visible wins and lists of 5 items at most. `off` turns both off.
 
@@ -155,6 +155,10 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 - mobile apps
 - financial modeling
 - Anthropic's business-role plugins
+- type checking for other languages (Go, Rust, Java, C# and more)
+- Chrome DevTools for web performance
+- building Claude plugins and MCP servers
+- diagrams
 
 See [`packs.md`](plugins/ingot/skills/specialize/packs.md).
 

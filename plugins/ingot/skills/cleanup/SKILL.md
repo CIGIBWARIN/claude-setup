@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Fix the most glaring problems in an existing project (dead code, over-engineering, test slop, doc bloat, silent failures, hardcoded secrets) in safe, verified steps, each committed separately. Use when the user wants to clean up, fix or tidy older code, or work done before this setup.
+description: Fix the worst problems in an existing project (dead code, over-engineering, test slop, doc bloat, silent failures, hardcoded secrets) in safe, verified, separately committed steps. Use when asked to clean up or fix old code.
 ---
 
 # Cleanup

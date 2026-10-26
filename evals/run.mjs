@@ -3,6 +3,7 @@
 //
 //   node evals/run.mjs                          every suite
 //   node evals/run.mjs humanizer --ref v3.2.0   one suite, against a candidate tag (before moving a pin)
+//   node evals/run.mjs ingot --surface desktop  as the desktop app's Code tab (default: the terminal CLI)
 //   node evals/run.mjs ingot --case rules-*     extra options go to `claude plugin eval`
 //
 // Each suite folder here is named after its marketplace in marketplaces.txt. The plugin is cloned at its pinned tag
@@ -20,6 +21,11 @@ const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i < 0 ? fallback : args.splice(i, 2)[1]; };
 const ref = opt('--ref');
 const runs = opt('--runs', '1');
+// Runs started from inside the desktop app inherit its variables, so pick the surface Ingot's hook should see.
+const surface = opt('--surface', 'cli');
+delete process.env.CLAUDE_CODE_DESKTOP_APP_VERSION;
+if (surface === 'desktop') process.env.CLAUDE_CODE_ENTRYPOINT = 'claude-desktop';
+else delete process.env.CLAUDE_CODE_ENTRYPOINT;
 const suites = [];
 while (args.length && !args[0].startsWith('-')) suites.push(args.shift());
 const all = fs.readdirSync(here, { withFileTypes: true }).filter((d) => d.isDirectory() && d.name !== 'results').map((d) => d.name);

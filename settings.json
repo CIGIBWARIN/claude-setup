@@ -5,7 +5,7 @@
   },
   "spinnerTipsOverride": {
     "tips": [
-      "Press Esc twice (or type /rewind) to undo Claude's last steps",
+      "Esc stops Claude so you can redirect it; Esc twice (or /rewind) undoes its file edits, but not commands it ran",
       "/plan <task> makes Claude plan before it edits anything",
       "/clear starts fresh when you switch tasks: faster and cheaper",
       "/btw asks a side question without derailing the current task",

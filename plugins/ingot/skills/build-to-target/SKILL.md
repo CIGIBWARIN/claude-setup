@@ -1,6 +1,6 @@
 ---
 name: build-to-target
-description: Build anything with a visible or checkable result (a page, app, game, chart, document, video, or script output). Pin a concrete target first, then loop through build, look, compare and fix until the real output matches. Use when making or reworking something the user will look at or run, or when they say "make it look or work like X".
+description: Build anything with a visible or checkable result (page, app, game, chart, document, video, script output) by pinning a target, then looping build, look, compare, fix. Use for "make it look or work like X".
 ---
 
 # Build to target

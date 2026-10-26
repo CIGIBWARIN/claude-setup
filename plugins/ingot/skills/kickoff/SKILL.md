@@ -1,6 +1,6 @@
 ---
 name: kickoff
-description: Start a new project right, of any kind (coding, content, agentic or research). Find out what the user is making, pick the simplest setup, set the project's category, produce a real first result, and leave a lean CLAUDE.md. Use in an empty folder or when the user wants to start something new.
+description: "Start a new project of any kind (coding, content, agentic or research): find out what it is, pick the simplest setup, produce a real first result, leave a lean CLAUDE.md. Use in an empty folder or for a new idea."
 ---
 
 # Kickoff
@@ -21,7 +21,7 @@ Skip anything the user already said.
 
 - **Coding:** use the fewest moving parts, such as plain HTML/CSS/JS before a framework and one file before many. Add a database only when data must persist across users or devices, and prefer tools the user already has.
 - **Content:** a few folders (`drafts/`, `final/`, `assets/`) plus a voice and audience note in CLAUDE.md.
-- **Agentic:** one script or workflow file, a dry-run mode, and a log of what each run did. Recurring jobs run with `/schedule`.
+- **Agentic:** one script or workflow file, a dry-run mode, and a log of what each run did. Recurring jobs on local files run with the OS scheduler (or a desktop app scheduled task); `/schedule` is for cloud runs on a GitHub repo.
 - **Research:** `sources/` or `data/` for inputs and one output file, with every claim sourced.
 
 State your choice and why in one or two lines, plus one bigger alternative, then proceed. If a pack from `/ingot:specialize` clearly fits, mention it in one line.

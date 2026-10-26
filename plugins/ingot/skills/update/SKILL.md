@@ -1,6 +1,6 @@
 ---
 name: update
-description: Bring Ingot up to date. It updates Claude Code, the plugins, the shared tools and the defaults, removes leftovers from deleted projects, and re-checks the project's CLAUDE.md. Use when the user asks to update, or when Claude offers it.
+description: Update Ingot, Claude Code, the plugins and shared tools, clear leftovers from deleted projects, and re-check CLAUDE.md. Use when the user asks to update, or when Claude offers it.
 ---
 
 # Update

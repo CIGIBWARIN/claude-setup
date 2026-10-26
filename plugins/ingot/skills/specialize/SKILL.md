@@ -1,6 +1,6 @@
 ---
 name: specialize
-description: Tailor Claude to the current project. Sets the project's general category (coding, content, agentic or research), which picks the rules and tools that load. Then handles the specifics: a lean CLAUDE.md with the real commands or workflow, unused plugins turned off, matching packs, and skills learned from past sessions. Use on first opening a project, when the user asks to tune, specialize or optimize Claude for it, or every few weeks.
+description: "Tune Claude to this project: its category, a lean CLAUDE.md with the real commands, unused plugins off, matching packs, and skills from past sessions. Use on first opening a project, or when asked to tune or optimize Claude for it."
 ---
 
 # Specialize Claude for this project
@@ -22,7 +22,7 @@ If it's still unclear, ask one question: what is this project for, and who is it
 
 ## 2. Specific: how work gets done here
 
-- **Coding:** find the exact commands to install, build, test, lint and run. Run the build or test once to confirm it works, and mark anything you couldn't verify "(unverified)".
+- **Coding:** find the exact commands to install, build, test, lint and run. Run the build or test once to confirm it works, and mark anything you couldn't verify "(unverified)". If the app needs more than a standard launch to run, offer `/run-skill-generator` so `/run` and `/verify` work reliably.
 - **Everything else:** find where inputs live, where finished work goes, and the house style (voice, tone, formats, naming, audience). Take these from existing finished work, never invent them.
 
 ## 3. Write or trim CLAUDE.md (60 lines at most)
