@@ -13,6 +13,7 @@ Goal: one install that keeps Claude Code at its best for coding, content, agenti
    - Flag new network calls, account requirements or paid tiers.
    - Recommend keeping, bumping the pin or dropping each one.
    - **Before moving a pin,** run `node evals/run.mjs <marketplace> --ref <new tag>`. Bump the tag in `marketplaces.txt` only if it passes, and say what changed in the scores.
+   - **Cases that need a shell** (`claude-video`, `ingot/verify-before-done`) can't run on native Windows. On this PC, run them in the signed-in WSL sandbox: `wsl -d ingot-evals -- bash -lc "cd ~/ingot && git pull -q && node evals/run.mjs claude-video"`.
 2. **ECC upstream:** compare `plugins/ingot/ecc-commit.txt` against `affaan-m/ECC` HEAD for `silent-failure-hunter.md`.
    - Port only real fixes.
    - Update `ecc-commit.txt` if you do.
