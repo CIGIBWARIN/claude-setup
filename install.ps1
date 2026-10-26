@@ -24,7 +24,8 @@ $setupArgs = $args
     function Invoke-Winget($verb, $id, $label, $url, $check) {
         if (-not (Test-Command 'winget')) { throw "$label is needed and winget isn't available. Install $label from $url, then run this command again." }
         Write-Host "Installing $label..."
-        winget $verb --id $id --silent --accept-package-agreements --accept-source-agreements
+        # Only the community source: the Microsoft Store source can fail on its own (seen on a fresh Windows) and isn't needed.
+        winget $verb --id $id --source winget --silent --accept-package-agreements --accept-source-agreements
         Update-SessionPath
         if (-not (& $check)) { throw "$label could not be installed automatically. Install it from $url, then run this command again." }
     }

@@ -130,7 +130,8 @@ function refreshPath() {
   if (r.ok && r.out) process.env.PATH = `${r.out};${process.env.PATH}`;
 }
 
-const winget = (id, extra = []) => run('winget', ['install', '--id', id, ...extra, '--silent', '--accept-package-agreements', '--accept-source-agreements']);
+// Only the community source: the Microsoft Store source can fail on its own (seen on a fresh Windows) and isn't needed.
+const winget = (id, extra = []) => run('winget', ['install', '--id', id, '--source', 'winget', ...extra, '--silent', '--accept-package-agreements', '--accept-source-agreements']);
 
 // sudo asks on /dev/tty, so it can still prompt under `curl | bash`, where stdin is the script pipe.
 const hasTty = () => { try { fs.closeSync(fs.openSync('/dev/tty', 'r')); return true; } catch { return false; } };
@@ -186,7 +187,7 @@ function standaloneYtDlp() {
 // Sites break old yt-dlp versions quickly, so every run updates the copy we installed.
 function updateYtDlp(hasWinget) {
   if (hasWinget) {
-    const r = run('winget', ['upgrade', '--id', 'yt-dlp.yt-dlp', '--skip-dependencies', '--silent', '--accept-package-agreements', '--accept-source-agreements'], { quiet: true });
+    const r = run('winget', ['upgrade', '--id', 'yt-dlp.yt-dlp', '--source', 'winget', '--skip-dependencies', '--silent', '--accept-package-agreements', '--accept-source-agreements'], { quiet: true });
     // No newer version / not installed through winget / version unknown: nothing to update.
     if (!r.ok && ![0x8a15002b, 0x8a150014, 0x8a150050].includes(r.code >>> 0)) fail('yt-dlp (update)', 'run: winget upgrade --id yt-dlp.yt-dlp');
   } else if (!isWin && standaloneYtDlp() && !run(`"${localYtDlp}"`, ['--ignore-config', '-U'], { quiet: true }).ok) {
