@@ -8,14 +8,15 @@
     "claude-setup": "setup.mjs"
   },
   "engines": {
-    "node": ">=20.12"
+    "node": ">=22"
   },
   "files": [
     "setup.mjs",
     "plugins.txt",
     "marketplaces.txt",
     "npm-globals.txt",
-    "settings.json"
+    "settings.json",
+    "retired.txt"
   ],
   "license": "MIT"
 }

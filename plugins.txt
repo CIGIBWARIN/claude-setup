@@ -2,7 +2,6 @@
 context7@claude-plugins-official
 guardrails@claude-setup
 humanizer@humanizer
-i-have-adhd@i-have-adhd
 pyright-lsp@claude-plugins-official
 security-guidance@claude-plugins-official
 taste-skill@taste-skill

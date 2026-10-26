@@ -2,5 +2,19 @@
   "env": {
     "ENABLE_STOP_REVIEW": "0",
     "SG_AGENTIC_MODEL": "sonnet"
+  },
+  "spinnerTipsOverride": {
+    "tips": [
+      "Press Esc twice (or type /rewind) to undo Claude's last steps",
+      "/plan <task> makes Claude plan before it edits anything",
+      "/clear starts fresh when you switch tasks: faster and cheaper",
+      "/btw asks a side question without derailing the current task",
+      "/rename names this session; claude --continue picks up where you left off",
+      "/usage shows how much of your limit you've used",
+      "/toolkit:specialize re-tunes Claude for this project",
+      "/toolkit:style lite | core | off changes how Claude formats replies",
+      "/watch <link> lets Claude watch a video",
+      "claude --safe-mode runs without add-ons, to compare"
+    ]
   }
 }

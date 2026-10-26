@@ -1,7 +1,6 @@
 ---
 name: kickoff
-description: Give a new project a strong start, whether it's an app or website, a script or automation, or a writing, research, data or design project. Figure out what the user is making, pick the simplest setup that fits, produce a first real result, and leave a lean CLAUDE.md.
-disable-model-invocation: true
+description: Start a new project right, of any kind (coding, content, agentic or research). Find out what the user is making, pick the simplest setup, set the project's category, produce a real first result, and leave a lean CLAUDE.md. Use in an empty folder or when the user wants to start something new.
 ---
 
 # Kickoff
@@ -10,36 +9,37 @@ Go from idea to a first real result the user can see, with nothing extra.
 
 ## 1. Understand the idea
 
-Ask one question at a time, and stop as soon as you know enough:
+Ask everything you need in a single batch, using AskUserQuestion if it's available:
 
-- What are you making, and who is it for? One sentence.
-- What kind is it? An app or website, a script or automation, writing or content, research, data analysis, or design.
-- What's the one result the first version must deliver?
+- what it is and who it's for
+- the category: coding (an app, site, script or extension), content (writing, video, social or design), agentic (an automation or recurring task), or research (sources, data or a report)
+- the one result the first version must deliver
 
-If the user already said all of this, skip straight to step 2.
+Skip anything the user already said.
 
-## 2. Pick the simplest setup that fits
+## 2. Pick the simplest setup
 
-- **Software:** pick the stack with the fewest moving parts. Use plain HTML/CSS/JS before a framework, and one file before many. Add a database only when data must persist across users or devices. Prefer what the user already knows or has installed.
-- **Writing or content:** start with a few folders at most (for example `drafts/`, `final/`, `assets/`) and a short voice and audience section in CLAUDE.md. Use `/watch` for video references, and let humanizer polish the prose.
-- **Research or data:** keep `sources/` or `data/` for inputs and one output file such as a report, notes or a notebook. Record where every number or claim came from.
-- **Design:** pin a visual target first (references or a short brief), then use `/toolkit:build-to-target`.
+- **Coding:** use the fewest moving parts, such as plain HTML/CSS/JS before a framework and one file before many. Add a database only when data must persist across users or devices, and prefer tools the user already has.
+- **Content:** a few folders (`drafts/`, `final/`, `assets/`) plus a voice and audience note in CLAUDE.md.
+- **Agentic:** one script or workflow file, a dry-run mode, and a log of what each run did. Recurring jobs run with `/schedule`.
+- **Research:** `sources/` or `data/` for inputs and one output file, with every claim sourced.
 
-State the choice and the reason in one or two lines, plus one bigger alternative. Then proceed unless the user objects. If an optional pack from `/toolkit:specialize` clearly fits, such as marketing, research or video, mention it in one line.
+State your choice and why in one or two lines, plus one bigger alternative, then proceed. If a pack from `/toolkit:specialize` clearly fits, mention it in one line.
 
 ## 3. Set up
 
-- Run `git init` so every step can be undone. Add a `.gitignore` that covers secrets, dependencies and build output.
-- For software, put secrets in a `.env` file, plus a `.env.example` holding placeholder values.
-- Don't add CI, Docker, linters, test frameworks or extra scaffolding yet. Add each one when it's needed.
+- Run `git init`, then add a `.gitignore` covering secrets, dependencies and build output.
+- For code, put secrets in a `.env` file with a matching `.env.example`.
+- Set `env.CLAUDE_SETUP_CATEGORY` in `.claude/settings.json` to the category.
+- Add CI, Docker, linters, test frameworks or extra scaffolding only when they're needed.
 
 ## 4. Produce the first real result
 
-- Make the one core thing for real: a running app, a working script, a finished first draft, a first analysis with its sources, or a design that matches its target. For anything visual, use `/toolkit:build-to-target`.
-- Show the user how to see or use it. Give the exact command, URL or file path.
+Make the one core thing for real: a running app, a working script, a first draft, a sourced first analysis, or a design that matches its target. For anything visual, use `/toolkit:build-to-target`. Then show the user how to see or use it, with the exact command, URL or file path.
 
 ## 5. Leave it in good shape
 
-1. Write a CLAUDE.md of 30 lines or fewer: what it is, who it's for, the commands or workflow (checked), and the layout.
-2. Commit with the message "first version".
-3. Suggest the next 3 steps, smallest first.
+1. Write a CLAUDE.md of 60 lines or fewer: what the project is, who it's for, the checked commands or workflow, and the layout.
+2. Create the empty file `.claude/.claude-setup-checked`.
+3. Commit with the message "first version".
+4. Suggest the next 3 steps, smallest first.
