@@ -5,4 +5,4 @@ timeout_seconds: 900
 allowed_tools: [Read, Write, Edit, Glob, Grep, Skill]
 ---
 
-Build a one-page landing page for Ember & Rye, a small sourdough bakery in Portland, Oregon, open Wednesday to Sunday. Make it a single `index.html` with inline CSS and no frameworks.
+Use the design-taste-frontend skill to build a one-page landing page for Ember & Rye, a small sourdough bakery in Portland, Oregon, open Wednesday to Sunday. Make it a single `index.html` with inline CSS and no frameworks.

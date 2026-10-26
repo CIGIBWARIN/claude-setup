@@ -168,6 +168,13 @@ async function installTools() {
   const viaWinget = (id) => hasWinget ? `run: winget install --id ${id}` : 'install "App Installer" (winget) from the Microsoft Store, then run this command again';
   // taste-skill needs Node 22+; the bootstrap scripts install it, but npx may run on an older Node.
   if (parseInt(process.versions.node, 10) < 22) fail('Node.js 22+', `this is Node ${process.versions.node}; install the LTS from https://nodejs.org/en/download`);
+  // Claude Code downloads every plugin with git; minimal Linux installs often don't have it.
+  if (!onPath('git')) {
+    if (hasWinget) winget('Git.Git');
+    else if (hasBrew) run('brew', ['install', 'git']);
+    else if (linux) linuxInstall('git', 'Git');
+    refreshPath();
+  }
   const needPython = !findPython(), needFfmpeg = !onPath('ffmpeg'), needYtDlp = !onPath('yt-dlp');
   if (needPython) {
     console.log('Python 3.10+ not found (needed by security-guidance and /watch).');
@@ -226,6 +233,10 @@ async function installTools() {
 function setupPlugins(scopes, cwd) {
   if (!onPath('claude')) {
     return fail('Claude Code', `run: ${isWin ? 'irm https://claude.ai/install.ps1 | iex' : 'curl -fsSL https://claude.ai/install.sh | bash'}, then run this command again`);
+  }
+  if (!onPath('git')) {
+    return fail('Git', isWin ? 'run: winget install --id Git.Git, then run this command again'
+      : process.platform === 'darwin' ? 'run: xcode-select --install, then run this command again' : 'install git with your package manager, then run this command again');
   }
   const known = new Map((claudeJson('plugin', 'marketplace', 'list') ?? []).map((m) => [m.name, m]));
   for (const [name, repoSlug, ref] of markets()) {

@@ -32,7 +32,7 @@ const lines = (f) => fs.readFileSync(path.join(repo, f), 'utf8').split(/\r?\n/).
 // Evals refuse shell tools where they can't sandbox them (native Windows), so those cases run on macOS, Linux or WSL.
 const shellOk = process.platform !== 'win32';
 const needsShell = (dir) => ['prompt.md', 'case.yaml'].some((f) => fs.existsSync(path.join(dir, f)) &&
-  /allowed_tools:.*(Bash|PowerShell)/.test(fs.readFileSync(path.join(dir, f), 'utf8')));
+  /allowed_tools:.*\b(Bash|PowerShell)\b/.test(fs.readFileSync(path.join(dir, f), 'utf8')));
 const sh = (cmd, cwd) => spawnSync(cmd, { shell: true, stdio: 'inherit', cwd }).status;
 const results = path.join(here, 'results');
 fs.mkdirSync(results, { recursive: true });
@@ -49,12 +49,21 @@ function pluginDir(suite, tmp) {
   const [slug, pinned] = line[1].split('#');
   const tag = ref ?? pinned;
   const clone = path.join(tmp, 'src');
-  if (sh(`git clone --quiet --depth 1 ${tag ? `--branch ${tag} ` : ''}https://github.com/${slug}.git "${clone}"`) !== 0) throw new Error(`could not clone ${slug}${tag ? ` at ${tag}` : ''}`);
+  if (sh(`git -c advice.detachedHead=false clone --quiet --depth 1 ${tag ? `--branch ${tag} ` : ''}https://github.com/${slug}.git "${clone}"`) !== 0) throw new Error(`could not clone ${slug}${tag ? ` at ${tag}` : ''}`);
   const plugin = lines('plugins.txt').find((p) => p.endsWith(`@${suite}`))?.split('@')[0];
   const entry = JSON.parse(fs.readFileSync(path.join(clone, '.claude-plugin', 'marketplace.json'), 'utf8')).plugins.find((p) => p.name === plugin);
   if (typeof entry?.source !== 'string') throw new Error(`${slug} has no local plugin source for ${plugin}`);
   console.log(`${suite}: ${slug} at ${tag ?? 'its default branch'}`);
-  return path.join(clone, entry.source);
+  // resolve() drops the trailing slash of "./", which would escape the closing quote on Windows.
+  const dir = path.resolve(clone, entry.source);
+  // Some plugins are declared only in marketplace.json; write the same declaration as a plugin.json so eval loads it.
+  const manifest = path.join(dir, '.claude-plugin', 'plugin.json');
+  if (!fs.existsSync(manifest)) {
+    const { source, strict, category, tags, ...declared } = entry;
+    fs.mkdirSync(path.dirname(manifest), { recursive: true });
+    fs.writeFileSync(manifest, JSON.stringify(declared, null, 2));
+  }
+  return dir;
 }
 
 let failed = 0;
@@ -71,7 +80,7 @@ for (const suite of chosen) {
     }
     if (!fs.readdirSync(cases).length) continue;
     const json = path.join(results, `${suite}.json`);
-    const code = sh(['claude plugin eval', `"${dir}"`, '--eval-dir ingot-evals', `--runs ${runs}`, '--trust-plugin', '--no-publish',
+    const code = sh(['claude plugin eval', `"${dir}"`, '--eval-dir ingot-evals', `--output-dir "${path.join(tmp, 'out')}"`, `--runs ${runs}`, '--trust-plugin', '--no-publish',
       `--allow-tools Write Edit${shellOk ? ' Bash' : ''}`, `--json "${json}"`, `--report "${path.join(results, `${suite}.html`)}"`, ...args].join(' '));
     if (code !== 0) failed++;
     console.log(`${suite}: ${code === 0 ? 'passed' : `FAILED (exit ${code})`}\n`);
