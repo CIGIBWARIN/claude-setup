@@ -1,0 +1,6 @@
+{
+  "name": "ingot",
+  "description": "Ingot for Claude Code: working rules, per-project specialization (coding, content, agentic, research), coaching, reply styles, and the start, kickoff, specialize, cleanup, update and settings commands.",
+  "author": { "name": "CIGIBWARIN", "url": "https://github.com/CIGIBWARIN" },
+  "license": "MIT"
+}

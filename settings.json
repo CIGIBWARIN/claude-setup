@@ -11,8 +11,8 @@
       "/btw asks a side question without derailing the current task",
       "/rename names this session; claude --continue picks up where you left off",
       "/usage shows how much of your limit you've used",
-      "/toolkit:specialize re-tunes Claude for this project",
-      "/toolkit:style lite | core | off changes how Claude formats replies",
+      "/ingot:start shows what Ingot can do in this folder",
+      "/ingot:settings changes the reply style and coaching level",
       "/watch <link> lets Claude watch a video",
       "claude --safe-mode runs without add-ons, to compare"
     ]

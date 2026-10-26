@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: colors
+description: /watch reads a local video's frames.
+execution:
+  max_turns: 15
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Bash, Skill]
+  prompt: |
+    Use /watch on the video colors.mp4 in the added media folder. Which solid colors fill the screen, in order, and about how long is the video?
+context:
+  add_dirs: [media]
+graders:
+  - type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:watch:)?watch"'
+  - type: llm
+    weight: 2
+    criteria: PASS if the reply says the screen is red, then green, then blue, and that the video is about 9 seconds long (8 to 10 is fine). FAIL otherwise.

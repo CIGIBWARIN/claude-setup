@@ -1,6 +1,7 @@
-# <marketplace name> <github owner/repo>
+# <marketplace name> <github owner/repo>[#tag]
+# A tag pins a third-party marketplace to a release that passed our evals; bump it only after `node evals/run.mjs` passes.
 claude-plugins-official anthropics/claude-plugins-official
-claude-setup CIGIBWARIN/claude-setup
-claude-video bradautomates/claude-video
-humanizer blader/humanizer
-taste-skill Leonxlnx/taste-skill
+claude-video bradautomates/claude-video#v0.3.2
+humanizer blader/humanizer#v3.1.0
+ingot CIGIBWARIN/ingot
+taste-skill Leonxlnx/taste-skill#v2.1.5

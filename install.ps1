@@ -1,7 +1,7 @@
 # One-step Windows bootstrap: installs anything missing (Git, Node.js 22+, Claude Code), then runs setup.mjs.
-#   irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1 | iex
 # With options (e.g. also write this folder's .claude/settings.json):
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/claude-setup/main/install.ps1))) --project
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --project
 # Works in Windows PowerShell 5.1 and PowerShell 7.
 # The body runs in its own scope so `iex` doesn't leave settings or functions behind in the caller's shell.
 $setupArgs = $args
@@ -42,14 +42,14 @@ $setupArgs = $args
         Update-SessionPath
     }
 
-    $tmp = Join-Path $env:TEMP ('claude-setup-' + [guid]::NewGuid().ToString('N'))
+    $tmp = Join-Path $env:TEMP ('ingot-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $tmp | Out-Null
     try {
         $zip = Join-Path $tmp 'repo.zip'
-        Invoke-WebRequest -UseBasicParsing https://codeload.github.com/CIGIBWARIN/claude-setup/zip/refs/heads/main -OutFile $zip
+        Invoke-WebRequest -UseBasicParsing https://codeload.github.com/CIGIBWARIN/ingot/zip/refs/heads/main -OutFile $zip
         Expand-Archive -Path $zip -DestinationPath $tmp
         # setup.mjs prints the closing block (done, or what is missing and how to fix it) and sets $LASTEXITCODE.
-        & node (Join-Path $tmp 'claude-setup-main\setup.mjs') @setupArgs
+        & node (Join-Path $tmp 'ingot-main\setup.mjs') @setupArgs
     } finally {
         Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
     }

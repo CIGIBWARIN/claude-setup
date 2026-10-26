@@ -1,11 +1,11 @@
 {
-  "name": "claude-setup",
+  "name": "ingot",
   "version": "1.0.0",
   "private": true,
-  "description": "One-step Claude Code setup: curated plugins, guardrails and reviewers",
+  "description": "Ingot for Claude Code: one-command setup with lean rules, specialization, coaching and curated plugins",
   "type": "module",
   "bin": {
-    "claude-setup": "setup.mjs"
+    "ingot": "setup.mjs"
   },
   "engines": {
     "node": ">=22"

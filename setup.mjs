@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Cross-platform installer for this Claude Code setup (Windows, macOS, Linux). No dependencies.
+// Cross-platform installer for Ingot, a Claude Code setup (Windows, macOS, Linux). No dependencies.
 // Everything is a plugin, so this only writes Claude settings files and updates come from `claude plugin update`.
 //
-//   npx -y github:CIGIBWARIN/claude-setup             set up every project on this machine
-//   npx -y github:CIGIBWARIN/claude-setup --project   same, plus this folder's .claude/settings.json (commit it)
+//   npx -y github:CIGIBWARIN/ingot             set up every project on this machine
+//   npx -y github:CIGIBWARIN/ingot --project   same, plus this folder's .claude/settings.json (commit it)
 //
 // Options: --no-tools    skip Python / video tool / language-server installs
 //          --no-plugins  skip plugin installs
@@ -36,8 +36,15 @@ function readList(name) {
     .split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
 }
 
-// marketplaces.txt lines: "<name> <github owner/repo>"
-const markets = () => readList('marketplaces.txt').map((l) => l.split(/\s+/));
+// marketplaces.txt lines: "<name> <github owner/repo>[#tag]"; a tag pins that marketplace to a tested release.
+const markets = () => readList('marketplaces.txt').map((l) => {
+  const [name, source] = l.split(/\s+/);
+  const [repoSlug, ref] = source.split('#');
+  return [name, repoSlug, ref];
+});
+const githubSource = (repoSlug, ref) => ({ source: 'github', repo: repoSlug, ...(ref && { ref }) });
+// Marketplaces only retired plugins came from (e.g. the old claude-setup one).
+const retiredMarkets = () => [...new Set(readList('retired.txt').map((p) => p.split('@')[1]))].filter((m) => !markets().some(([name]) => name === m));
 const settingsFile = (scope, cwd) => scope === 'user' ? path.join(userClaude, 'settings.json') : path.join(cwd, '.claude', 'settings.json');
 const samePath = (a, b) => isWin ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase() : path.resolve(a) === path.resolve(b);
 // `claude plugin list` reports every project's installs; a project-scope entry only counts for its own folder.
@@ -220,10 +227,12 @@ function setupPlugins(scopes, cwd) {
   if (!onPath('claude')) {
     return fail('Claude Code', `run: ${isWin ? 'irm https://claude.ai/install.ps1 | iex' : 'curl -fsSL https://claude.ai/install.sh | bash'}, then run this command again`);
   }
-  const known = new Set((claudeJson('plugin', 'marketplace', 'list') ?? []).map((m) => m.name));
-  for (const [name, repoSlug] of markets()) {
-    if (known.has(name)) run('claude', ['plugin', 'marketplace', 'update', name], { quiet: true });
-    else if (!run('claude', ['plugin', 'marketplace', 'add', repoSlug]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${repoSlug}`);
+  const known = new Map((claudeJson('plugin', 'marketplace', 'list') ?? []).map((m) => [m.name, m]));
+  for (const [name, repoSlug, ref] of markets()) {
+    const source = ref ? `${repoSlug}#${ref}` : repoSlug;
+    if (known.has(name) && (known.get(name).ref ?? '') !== (ref ?? '')) repin(name, repoSlug, ref);
+    else if (known.has(name)) run('claude', ['plugin', 'marketplace', 'update', name], { quiet: true });
+    else if (!run('claude', ['plugin', 'marketplace', 'add', source]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${source}`);
   }
   const installed = claudeJson('plugin', 'list') ?? [];
   const missing = (p, scope) => fail(`${p} (${scope})`, `run: claude plugin install ${p} --scope ${scope}`);
@@ -242,7 +251,7 @@ function setupPlugins(scopes, cwd) {
       if (p.startsWith('i-have-adhd@')) fs.rmSync(adhdFlag, { force: true });
     }
     for (const p of readList('plugins.txt')) {
-      // A project that switched a plugin off (e.g. with /toolkit:specialize) keeps it off.
+      // A project that switched a plugin off (e.g. with /ingot:specialize) keeps it off.
       if (scope === 'project' && enabled[p] === false) continue;
       targets.push([p, scope]);
       console.log(`Plugin ${p} (${scope})`);
@@ -253,6 +262,33 @@ function setupPlugins(scopes, cwd) {
   }
   const now = claudeJson('plugin', 'list');
   for (const [p, scope] of now ? targets : []) if (!isInstalled(now, p, scope, cwd)) missing(p, scope);
+  // Forget a retired marketplace once nothing installed comes from it; removing it also clears its installs in other projects.
+  for (const m of retiredMarkets()) {
+    if (!known.has(m) || !now || now.some((i) => i.id.endsWith(`@${m}`) && !readList('retired.txt').includes(i.id))) continue;
+    console.log(`Removing retired marketplace ${m}`);
+    run('claude', ['plugin', 'marketplace', 'remove', m], { quiet: true });
+  }
+}
+
+// Moves a marketplace to a new pinned tag. Removing and re-adding it would uninstall its plugins in every project,
+// so first change the pin in place (user settings and Claude's marketplace record); fall back to remove and re-add.
+function repin(name, repoSlug, ref) {
+  console.log(`Pinning marketplace ${name} to ${ref ?? 'its latest version'}`);
+  const userFile = settingsFile('user');
+  const knownFile = path.join(userClaude, 'plugins', 'known_marketplaces.json');
+  for (const [file, entry] of [[userFile, (d) => d.extraKnownMarketplaces?.[name]], [knownFile, (d) => d[name]]]) {
+    const data = readJson(file);
+    const e = entry(data);
+    if (e?.source?.repo !== repoSlug || unreadable.has(file)) continue;
+    if (ref) e.source.ref = ref; else delete e.source.ref;
+    writeJson(file, data);
+  }
+  run('claude', ['plugin', 'marketplace', 'update', name], { quiet: true });
+  const now = (claudeJson('plugin', 'marketplace', 'list') ?? []).find((m) => m.name === name);
+  if (now && (now.ref ?? '') === (ref ?? '')) return;
+  const source = ref ? `${repoSlug}#${ref}` : repoSlug;
+  run('claude', ['plugin', 'marketplace', 'remove', name], { quiet: true });
+  if (!run('claude', ['plugin', 'marketplace', 'add', source]).ok) fail(`marketplace ${name}`, `run: claude plugin marketplace add ${source}`);
 }
 
 // settings.json in this repo holds defaults (env, spinner tips); values already in the target file win.
@@ -260,13 +296,22 @@ function applySettings(file, declareMarketplaces = false) {
   const ours = readJson(path.join(repo, 'settings.json'));
   const settings = readJson(file);
   settings.env = { ...ours.env, ...settings.env };
-  settings.spinnerTipsOverride ??= ours.spinnerTipsOverride;
+  // Settings from before the Ingot rename: CLAUDE_SETUP_STYLE becomes INGOT_STYLE, and so on.
+  for (const [k, v] of Object.entries(settings.env)) {
+    if (!k.startsWith('CLAUDE_SETUP_')) continue;
+    settings.env[k.replace('CLAUDE_SETUP_', 'INGOT_')] ??= v;
+    delete settings.env[k];
+  }
+  // Our own tips are refreshed (they name our commands); tips the user wrote are kept.
+  if (!settings.spinnerTipsOverride || settings.spinnerTipsOverride.tips?.some((t) => /^\/(toolkit|ingot):/.test(t))) {
+    settings.spinnerTipsOverride = ours.spinnerTipsOverride;
+  }
   if (declareMarketplaces) {
     // Declare the marketplaces in the project too, so cloud sessions and teammates can resolve its plugins.
     const wanted = markets();
     settings.extraKnownMarketplaces ??= {};
-    for (const [name, repoSlug] of wanted) {
-      if (name !== 'claude-plugins-official') settings.extraKnownMarketplaces[name] = { source: { source: 'github', repo: repoSlug } };
+    for (const [name, repoSlug, ref] of wanted) {
+      if (name !== 'claude-plugins-official') settings.extraKnownMarketplaces[name] = { source: githubSource(repoSlug, ref) };
     }
     for (const p of readList('retired.txt')) {
       delete settings.enabledPlugins?.[p];
@@ -302,7 +347,7 @@ function remove(scope, cwd) {
   const ours = readJson(path.join(repo, 'settings.json'));
   for (const p of readList('plugins.txt')) delete settings.enabledPlugins?.[p];
   for (const [name] of markets()) delete settings.extraKnownMarketplaces?.[name];
-  for (const k of Object.keys(ours.env ?? {})) delete settings.env?.[k];
+  for (const k of Object.keys(settings.env ?? {})) if (k in (ours.env ?? {}) || /^(INGOT|CLAUDE_SETUP)_/.test(k)) delete settings.env[k];
   if (JSON.stringify(settings.spinnerTipsOverride) === JSON.stringify(ours.spinnerTipsOverride)) delete settings.spinnerTipsOverride;
   for (const k of ['enabledPlugins', 'extraKnownMarketplaces', 'env']) if (settings[k] && !Object.keys(settings[k]).length) delete settings[k];
   if (scope !== 'user' && !Object.keys(settings).length) fs.rmSync(file);
@@ -351,7 +396,7 @@ if (projectMode && samePath(cwd, os.homedir())) {
 }
 if (has('--remove')) {
   remove(projectMode ? 'project' : 'user', cwd);
-  finish(`Removed claude-setup from ${projectMode ? 'this project' : 'this machine'}. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.`, 'Not removed:');
+  finish(`Removed Ingot from ${projectMode ? 'this project' : 'this machine'}. Shared tools (Node, Python, Git, ffmpeg, yt-dlp, language servers) were left installed.`, 'Not removed:');
 }
 if (!has('--no-tools')) await installTools();
 if (!has('--no-plugins')) setupPlugins(projectMode ? ['user', 'project'] : ['user'], cwd);

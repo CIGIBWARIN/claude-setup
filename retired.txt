@@ -1,4 +1,6 @@
-# Plugins earlier versions installed; the installer removes them on update.
+# Plugins earlier versions installed; the installer removes them (and their marketplace) on update.
+claude-md-management@claude-plugins-official
+guardrails@claude-setup
 i-have-adhd@i-have-adhd
 ponytail@ponytail
-claude-md-management@claude-plugins-official
+toolkit@claude-setup

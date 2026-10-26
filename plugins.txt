@@ -1,10 +1,9 @@
 # plugin@marketplace, one per line.
 context7@claude-plugins-official
-guardrails@claude-setup
 humanizer@humanizer
+ingot@ingot
 pyright-lsp@claude-plugins-official
 security-guidance@claude-plugins-official
 taste-skill@taste-skill
-toolkit@claude-setup
 typescript-lsp@claude-plugins-official
 watch@claude-video

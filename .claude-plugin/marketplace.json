@@ -1,16 +1,14 @@
 {
-  "name": "claude-setup",
-  "owner": { "name": "CIGIBWARIN" },
+  "name": "ingot",
+  "description": "Ingot for Claude Code: one plugin with lean rules, specialization, coaching and commands.",
+  "owner": {
+    "name": "CIGIBWARIN"
+  },
   "plugins": [
     {
-      "name": "guardrails",
-      "source": "./plugins/guardrails",
-      "description": "Stops test slop, doc sprawl and unverified 'done': tests only for what can break, docs proportional to the change."
-    },
-    {
-      "name": "toolkit",
-      "source": "./plugins/toolkit",
-      "description": "Self-specializing workflow skills: build to a target, tailor Claude to each project, verify before done."
+      "name": "ingot",
+      "source": "./plugins/ingot",
+      "description": "Ingot for Claude Code: the densest setup for Claude Code. Rules, specialization, coaching and commands in one plugin."
     }
   ]
 }
