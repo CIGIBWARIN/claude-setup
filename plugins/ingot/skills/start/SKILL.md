@@ -39,5 +39,6 @@ Then list the commands, one line each:
 - `/ingot:cleanup` fixes old code
 - `/ingot:build-to-target` builds to a target and checks the result
 - `/ingot:launch-check` runs a website pre-launch check
+- `/ingot:compliance` checks legal, privacy, security, accessibility and licence gaps
 - `/ingot:settings` changes the reply style and coaching level
 - `/ingot:update` refreshes everything

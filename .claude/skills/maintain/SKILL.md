@@ -27,10 +27,11 @@ Goal: one install that keeps Claude Code at its best for coding, content, agenti
 5. **Resources:** look at the official marketplace and popular community skills for free options with no account requirement that clearly beat something here.
    - Core is only for things nearly every session uses. Niche items go in `plugins/ingot/skills/specialize/packs.md`.
    - Check that every pack in `packs.md` still installs.
-6. **Apply and validate:** show the proposed changes as a list and apply the ones approved.
+6. **Compliance rules:** open `plugins/ingot/skills/compliance/reference.md`. Re-check each row against its source link, update anything that changed (thresholds, dates, new rules), and set the date at the top. Never change a rule without a source.
+7. **Apply and validate:** show the proposed changes as a list and apply the ones approved.
    - Run `claude plugin validate .`.
    - Test the hooks by piping sample JSON into `node plugins/ingot/hooks/*.mjs`.
    - Run `node --check setup.mjs`.
    - If rules, coaching or skills changed, run `node evals/run.mjs ingot`.
    - Commit and push only when the user says so. Pushing `main` reaches no users.
-7. **Release:** when `node evals/check.mjs`, the GitHub check and the affected evals pass, and the user says to release, run `git push origin main:stable`. Users get it the next time they run the install line or `/ingot:update`.
+8. **Release:** when `node evals/check.mjs`, the GitHub check and the affected evals pass, and the user says to release, run `git push origin main:stable`. Users get it the next time they run the install line or `/ingot:update`.

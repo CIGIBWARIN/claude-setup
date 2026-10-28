@@ -44,6 +44,7 @@ Type these inside Claude, in a project with Ingot. You only need to remember the
 | `/ingot:cleanup` | Saves a restore point, then fixes dead code, over-engineering, test slop, doc bloat, silent failures and hardcoded secrets, each verified and committed on its own | older code needs fixing |
 | `/ingot:build-to-target` | Pins a target (a screenshot, a page, an example), then builds, looks, compares and fixes until the real result matches | you're making something you'll look at or run |
 | `/ingot:launch-check` | Checks and fixes the 20 things websites usually miss (security, SEO, accessibility, speed, legal), and offers free hosting on GitHub Pages | you type it, before a site goes live |
+| `/ingot:compliance` | Checks legal, privacy, security, accessibility and licence gaps (GDPR, US state privacy, cookies, WCAG, COPPA, CAN-SPAM, payments, the EU AI Act), runs free scanners, fixes what you approve, and reports each item with its source. A checklist, not legal advice | you ask whether a project is compliant or safe to launch |
 | `/ingot:settings` | Shows or changes the reply style, the coaching level and the project's category, e.g. `/ingot:settings style core coach extra` | you type it |
 | `/ingot:update` | Updates Claude Code, Ingot, the plugins and the tools, and re-checks CLAUDE.md | the project was last tuned over a month ago |
 
