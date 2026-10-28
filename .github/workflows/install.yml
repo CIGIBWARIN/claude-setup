@@ -6,6 +6,8 @@
 name: install
 on:
   push:
+    # A release pushes a commit that already passed on main; testing it again only risks a runner queue timeout.
+    branches-ignore: [stable]
     paths: [install.sh, install.ps1, setup.mjs, '*.txt', settings.json, .github/workflows/install.yml]
   workflow_dispatch:
 permissions:
