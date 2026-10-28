@@ -43,6 +43,7 @@ $setupArgs = $args
         $base = 'https://nodejs.org/dist/latest-v24.x'
         $sum, $file = ((Invoke-WebRequest -UseBasicParsing "$base/SHASUMS256.txt").Content -split '\r?\n' |
             Where-Object { $_ -match "\snode-v[\d.]+-win-$arch\.zip$" }) -split '\s+'
+        if (-not $file) { throw 'No Node.js download for this PC was found. Install it from https://nodejs.org/en/download, then run this command again.' }
         $zip = Join-Path $env:TEMP $file
         Invoke-WebRequest -UseBasicParsing "$base/$file" -OutFile $zip
         if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $sum) { throw 'The Node.js download failed its checksum. Run this command again.' }
@@ -50,6 +51,7 @@ $setupArgs = $args
         New-Item -ItemType Directory -Path $dir | Out-Null
         # Windows' own tar unpacks Node's thousands of small files far faster than Expand-Archive.
         & "$env:SystemRoot\System32\tar.exe" -xf $zip -C $dir --strip-components=1
+        if ($LASTEXITCODE) { throw "Node.js could not be unpacked into $dir (is the disk full, or did antivirus block it?). Run this command again." }
         Remove-Item -LiteralPath $zip
         # First on the user PATH, so new terminals find it ahead of an older nvm-windows, Volta or Scoop Node.
         $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
