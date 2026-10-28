@@ -14,11 +14,11 @@ Ingot is turned on **per project**: you run the install line inside each project
 
    **Windows:**
    ```
-   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1 | iex
+   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.ps1 | iex
    ```
    **macOS / Linux:**
    ```
-   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.sh | bash
    ```
    - **Windows** may show a permission prompt if it needs to install Git or Node.js. Click Yes.
    - **Mac / Linux** may ask for your password if it needs a system package such as Python or ffmpeg. Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
@@ -59,8 +59,8 @@ Type these inside Claude, in a project with Ingot. You only need to remember the
 
 None of these need admin. The installer refuses to run in your home, Desktop, Documents or Downloads folder, because those hold many projects rather than one. To add an option such as `--user` or `--remove`, the install line looks like this:
 
-- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --user`
-- **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --user`
+- **Windows:** `& ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.ps1))) --user`
+- **macOS / Linux:** `curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.sh | bash -s -- --user`
 
 To turn a PC-wide setup off again, use `--remove --user`.
 
@@ -224,7 +224,7 @@ Ingot installs from this repo, so to customize it, fork it first and replace `CI
 
 Then push to your fork, and run your fork's install line again in each project. Every few months, try a session with `claude --safe-mode`, which runs with no add-ons, and keep only what still helps.
 
-**Maintainers:** users get the `stable` branch, so work on `main` reaches nobody until it is released. GitHub runs `node evals/check.mjs` on every push. `node evals/run.mjs` runs the evals on your subscription. When both pass, release with `git push origin main:stable`. `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
+**Maintainers:** users get the `stable` branch, so work on `main` reaches nobody until it is released. GitHub runs `node evals/check.mjs` on every push, and real installs on clean Linux, macOS and Windows machines when the installer changes. `node evals/run.mjs` runs the evals on your subscription. When both pass, release with `git push origin main:stable`. `/maintain` inside this repo reviews upstream changes and runs the evals before any pin moves.
 
 ## License
 

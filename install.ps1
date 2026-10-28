@@ -1,7 +1,7 @@
 # One-step Windows bootstrap: installs anything missing (Git, Node.js 22+, Claude Code), then runs setup.mjs.
-#   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.ps1 | iex
 # Run it in the project folder. With options (e.g. --user to turn Ingot on for every project on this PC):
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.ps1))) --user
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.ps1))) --user
 # Works in Windows PowerShell 5.1 and PowerShell 7.
 # The body runs in its own scope so `iex` doesn't leave settings or functions behind in the caller's shell.
 $setupArgs = $args
@@ -34,16 +34,46 @@ $setupArgs = $args
         if (-not (& $check)) { throw "$label could not be installed automatically. Install it from $url, then run this command again." }
     }
 
+    # Node.js in the user's own folder, like install.sh's ~/.local/share/ingot-node: needs neither admin rights nor winget.
+    function Install-PrivateNode {
+        $ProgressPreference = 'SilentlyContinue'  # Windows PowerShell's progress bar makes a 30 MB download crawl.
+        $dir = Join-Path $env:LOCALAPPDATA 'ingot-node'
+        Write-Host "Installing Node.js 24 LTS into $dir..."
+        $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
+        $base = 'https://nodejs.org/dist/latest-v24.x'
+        $sum, $file = ((Invoke-WebRequest -UseBasicParsing "$base/SHASUMS256.txt").Content -split '\r?\n' |
+            Where-Object { $_ -match "\snode-v[\d.]+-win-$arch\.zip$" }) -split '\s+'
+        $zip = Join-Path $env:TEMP $file
+        Invoke-WebRequest -UseBasicParsing "$base/$file" -OutFile $zip
+        if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $sum) { throw 'The Node.js download failed its checksum. Run this command again.' }
+        if (Test-Path $dir) { Remove-Item -LiteralPath $dir -Recurse -Force }
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        # Windows' own tar unpacks Node's thousands of small files far faster than Expand-Archive.
+        & "$env:SystemRoot\System32\tar.exe" -xf $zip -C $dir --strip-components=1
+        Remove-Item -LiteralPath $zip
+        # First on the user PATH, so new terminals find it ahead of an older nvm-windows, Volta or Scoop Node.
+        $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+        if (($userPath -split ';') -notcontains $dir) { [Environment]::SetEnvironmentVariable('Path', "$dir;$userPath", 'User') }
+        Update-SessionPath
+        # An older Node installed for all users still comes first, and only an admin can update that one.
+        if (-not (Test-Node)) { throw 'Node.js 22 or newer could not be installed automatically. Install it from https://nodejs.org/en/download (or ask an admin to update the Node.js installed for all users), then run this command again.' }
+    }
+
     Update-SessionPath
     # Claude Code on Windows needs Git for Windows (it uses Git Bash).
     if (-not (Test-Command 'git')) { Invoke-Winget 'install' 'Git.Git' 'Git' 'https://git-scm.com/download/win' { Test-Command 'git' } }
     if (-not (Test-Node)) {
-        # An older Node from nvm-windows, fnm, Volta or Scoop isn't winget's to upgrade, so fall back to a fresh install.
-        if (Test-Command 'node') {
-            try { Invoke-Winget 'upgrade' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
-            catch { Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
-        } else {
-            Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node }
+        try {
+            # An older Node from nvm-windows, fnm, Volta or Scoop isn't winget's to upgrade, so fall back to a fresh install.
+            if (Test-Command 'node') {
+                try { Invoke-Winget 'upgrade' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
+                catch { Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node } }
+            } else {
+                Invoke-Winget 'install' 'OpenJS.NodeJS.LTS' 'Node.js 22 or newer' 'https://nodejs.org/en/download' { Test-Node }
+            }
+        } catch {
+            # winget's Node is installed for all users, so it needs admin rights (and winget itself).
+            Install-PrivateNode
         }
     }
     if (-not (Test-Command 'claude')) {

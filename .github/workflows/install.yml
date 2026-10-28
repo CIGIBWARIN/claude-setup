@@ -1,6 +1,7 @@
 # Runs the install line on clean machines, with this commit's setup.mjs instead of the stable branch's.
-# Linux has no Node; macOS has Homebrew (which the README asks for) but no Node; Windows has no Node, Git or Python,
-# and in its old-node run an outdated Node comes first on PATH, the way nvm-windows, Volta or Scoop leave one.
+# Linux has no Node; macOS has Homebrew (which the README asks for) but no Node; Windows has no Node, Git or Python.
+# Windows also runs with an outdated Node first on PATH (the way nvm-windows, Volta or Scoop leave one), and without
+# winget, which takes the same path as a PC without admin rights: winget's Node is machine-wide and needs admin.
 # Passing means setup.mjs exited 0: it checks with `claude plugin list` that every plugin really is installed.
 name: install
 on:
@@ -38,19 +39,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [none, old]
+        include:
+          - case: no-node
+            drop: 'nodejs|\\Git\\|\\npm|hostedtoolcache'
+          - case: old-node
+            drop: 'nodejs|\\Git\\|\\npm|hostedtoolcache'
+          # Git stays: without winget, installing it is the user's job. --no-tools: Python, ffmpeg and yt-dlp need winget.
+          - case: no-winget
+            drop: 'nodejs|\\npm|hostedtoolcache|WindowsApps'
+            args: --no-tools
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Take Node, Git and Python off the saved PATH
+      - name: Take Node, Python and more off the saved PATH
         shell: powershell
         run: |
           foreach ($scope in 'Machine', 'User') {
-            $kept = [Environment]::GetEnvironmentVariable('Path', $scope) -split ';' | Where-Object { $_ -and $_ -notmatch 'nodejs|\\Git\\|\\npm|hostedtoolcache' }
+            $kept = [Environment]::GetEnvironmentVariable('Path', $scope) -split ';' | Where-Object { $_ -and $_ -notmatch '${{ matrix.drop }}' }
             [Environment]::SetEnvironmentVariable('Path', ($kept -join ';'), $scope)
           }
       - name: Put Node 20 first on the user PATH
-        if: matrix.node == 'old'
+        if: matrix.case == 'old-node'
         shell: powershell
         run: |
           $base = 'https://nodejs.org/dist/latest-v20.x'
@@ -69,5 +78,17 @@ jobs:
           Set-Location C:\proj
           $script = Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1"
           if ($script -notmatch 'refs/heads/stable') { throw 'install.ps1 no longer downloads refs/heads/stable; update this test' }
-          $script -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
+          # The README's form for options; it also passes none.
+          & ([scriptblock]::Create(($script -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA"))) ${{ matrix.args }}
+          exit $LASTEXITCODE
+      - name: Tools and language servers, once winget is back
+        if: matrix.case == 'no-winget'
+        shell: powershell
+        run: |
+          [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ";$env:LOCALAPPDATA\Microsoft\WindowsApps", 'User')
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          $env:NPM_CONFIG_PREFIX = $null
+          "node: $((Get-Command node).Source), npm global folder: $(npm config get prefix)"
+          Set-Location C:\proj
+          node "$env:GITHUB_WORKSPACE\setup.mjs"
           exit $LASTEXITCODE
