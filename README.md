@@ -31,15 +31,29 @@ Claude then offers `/ingot:start`, which tunes it to the project.
 
 The installer writes the setup into the project's `.claude/settings.json`. If the project is in git, commit that file, and teammates and cloud sessions get the same setup.
 
-## Which command, when
+## Commands
+
+Type these inside Claude, in a project with Ingot. You only need to remember the first one: `/ingot:start` picks the right next command for the folder.
+
+| Command | What it does | Claude offers it when |
+|---|---|---|
+| `/ingot:start` | Looks at the folder and runs the right command below, or shows a status table: category, settings, plugins, packs | a folder Ingot hasn't tuned yet |
+| `/ingot:kickoff` | Asks what you're making, picks the simplest setup, and produces a real first result | the folder is empty, or you have a new idea |
+| `/ingot:specialize` | Sets the project's category, writes a short CLAUDE.md with the real commands or workflow, turns off tools the project doesn't use, suggests packs, and learns from your past sessions | an existing project Ingot hasn't tuned |
+| `/ingot:workflow` | Maps how the whole project gets done (not just the code) from evidence and a few questions, then applies only the improvements you approve | you ask to optimize or speed up how you work |
+| `/ingot:cleanup` | Saves a restore point, then fixes dead code, over-engineering, test slop, doc bloat, silent failures and hardcoded secrets, each verified and committed on its own | older code needs fixing |
+| `/ingot:build-to-target` | Pins a target (a screenshot, a page, an example), then builds, looks, compares and fixes until the real result matches | you're making something you'll look at or run |
+| `/ingot:launch-check` | Checks and fixes the 20 things websites usually miss (security, SEO, accessibility, speed, legal), and offers free hosting on GitHub Pages | you type it, before a site goes live |
+| `/ingot:settings` | Shows or changes the reply style, the coaching level and the project's category, e.g. `/ingot:settings style core coach extra` | you type it |
+| `/ingot:update` | Updates Claude Code, Ingot, the plugins and the tools, and re-checks CLAUDE.md | the project was last tuned over a month ago |
+
+## Installer options
 
 | You want to | Run | Where |
 |---|---|---|
 | Turn Ingot on for a project | the install line | in the project folder |
-| Tune Claude to that project | `/ingot:start` inside Claude (Claude offers it) | in the project |
 | Update | the install line again, or `/ingot:update` inside Claude | in the project folder |
-| Change the reply style or coaching | `/ingot:settings` inside Claude | in any project with Ingot |
-| Turn Ingot off for a project | the install line with `--remove` (see below) | in the project folder |
+| Turn Ingot off for a project | the install line with `--remove` | in the project folder |
 | Turn Ingot on for every project on this PC | the install line with `--user` | any folder |
 
 None of these need admin. The installer refuses to run in your home, Desktop, Documents or Downloads folder, because those hold many projects rather than one. To add an option such as `--user` or `--remove`, the install line looks like this:
@@ -62,18 +76,6 @@ Ingot works the same way in both, because they share the same settings, plugins 
 | Extras | `claude -p` for scripts | browser, diff and terminal panes, scheduled tasks, side chats |
 
 The desktop app doesn't load plugins in WSL sessions, so open Windows folders directly instead.
-
-## One command: `/ingot:start`
-
-`/ingot:start` looks at the folder and does the right thing:
-
-| Folder | It runs | What that does |
-|---|---|---|
-| Empty, or a new idea | `/ingot:kickoff` | Asks what you're making, picks the simplest setup, and produces a real first result. |
-| An existing project | `/ingot:specialize` | Sets the project's category, writes a short CLAUDE.md with the real commands or workflow, turns off tools the project doesn't use, suggests packs, and learns from your past sessions. |
-| Older code that needs fixing | `/ingot:cleanup` | Saves a restore point, then fixes dead code, over-engineering, test slop, doc bloat, silent failures and hardcoded secrets. Each fix is verified and committed on its own. |
-| Last tuned over a month ago | `/ingot:update` | Updates Claude Code, the plugins and the tools, and re-checks CLAUDE.md. |
-| Already tuned | a status table | Shows the category, settings, plugins and packs, plus every Ingot command. |
 
 ## Two levels of specialization
 
@@ -119,7 +121,7 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 
 **Reply style.** `lite` is the default: the answer comes first, steps are numbered, progress is said plainly. `core` is a full ADHD-friendly set, with the next action first, state restated each turn, visible wins and lists of 5 items at most. `off` turns both off.
 
-**Settings.** `/ingot:settings` shows and changes the reply style, the coaching level and the project's category, for example `/ingot:settings style core coach extra`. Changes apply from the next session.
+**Settings.** Change the reply style, coaching level or category with `/ingot:settings`. Changes apply from the next session.
 
 **Project offers.** Claude offers `/ingot:start` once per new session in a folder Ingot hasn't tuned. If you decline, Claude records that and doesn't ask again. Folders like home, Desktop, Documents and Downloads never get an offer.
 
@@ -133,7 +135,7 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 
 | Plugin | What it does |
 |---|---|
-| `ingot` (this repo) | The rules, categories, coaching, reply style and project offers, plus `/ingot:start`, `kickoff`, `specialize`, `workflow` (maps how the whole project gets done, then applies only the improvements you approve), `cleanup`, `update`, `settings`, `launch-check` (a 20-item website pre-launch check), `build-to-target` (pin a target, then build, look, compare and fix), and a silent-failure-hunter agent. |
+| `ingot` (this repo) | The rules, categories, coaching, reply style and project offers, the [commands](#commands), and a silent-failure-hunter agent. |
 | [watch](https://github.com/bradautomates/claude-video) | `/watch <link or file>`: Claude watches videos using frames and a transcript, locally, with no account. |
 | [humanizer](https://github.com/blader/humanizer) | Removes the signs of AI writing from posts, emails and pages. |
 | `context7` | Up-to-date docs for the libraries a project uses. |
@@ -198,7 +200,7 @@ Nothing else sends your files anywhere.
 
 ## Removing it
 
-Each of these is the install line with options added, as shown in [Which command, when](#which-command-when).
+Each of these is the install line with options added, as shown in [Installer options](#installer-options).
 
 - **Turn it off for one project:** add `--remove`, in that folder. Your own settings in that file are kept. If Ingot is also on PC-wide, it is switched off for just this project.
 - **Turn off a PC-wide setup (`--user`):** add `--remove --user`. Projects you set up one by one keep working.
