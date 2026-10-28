@@ -22,6 +22,9 @@ jobs:
             path: /usr/bin:/bin:/usr/sbin:/sbin
           - os: macos-latest
             path: /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+          # Intel: Homebrew and the runner's Node live in /usr/local/bin, left off PATH here.
+          - os: macos-15-intel
+            path: /usr/bin:/bin:/usr/sbin:/sbin
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
