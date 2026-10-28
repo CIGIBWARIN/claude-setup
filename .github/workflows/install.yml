@@ -11,7 +11,6 @@ permissions:
   contents: read
 jobs:
   unix:
-    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [none]
+        node: [none, old]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,21 +61,10 @@ jobs:
       - name: Install
         shell: powershell
         run: |
-          # What a new terminal gets.
+          # What a new terminal gets. The runner points npm's global folder at one taken off PATH above.
           $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          $env:NPM_CONFIG_PREFIX = $null
           New-Item -ItemType Directory C:\proj | Out-Null
           Set-Location C:\proj
           (Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1") -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
           exit $LASTEXITCODE
-      - name: Diagnose
-        if: failure()
-        shell: powershell
-        run: |
-          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
-          "npm prefix: $(npm config get prefix)"
-          "user npmrc: $(Get-Content $env:USERPROFILE\.npmrc -ErrorAction SilentlyContinue)"
-          "global npmrc: $(npm config get globalconfig) -> $(Get-Content (npm config get globalconfig) -ErrorAction SilentlyContinue)"
-          "NPM_CONFIG_PREFIX env: $env:NPM_CONFIG_PREFIX"
-          "User PATH: " + [Environment]::GetEnvironmentVariable('Path', 'User')
-          Get-ChildItem "$env:APPDATA\npm" -ErrorAction SilentlyContinue | Select-Object -First 8 Name
-          Get-Command pyright -ErrorAction SilentlyContinue | Select-Object Source
