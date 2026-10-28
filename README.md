@@ -133,7 +133,7 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 
 | Plugin | What it does |
 |---|---|
-| `ingot` (this repo) | The rules, categories, coaching, reply style and project offers, plus `/ingot:start`, `kickoff`, `specialize`, `cleanup`, `update`, `settings`, `launch-check` (a 20-item website pre-launch check), `build-to-target` (pin a target, then build, look, compare and fix), and a silent-failure-hunter agent. |
+| `ingot` (this repo) | The rules, categories, coaching, reply style and project offers, plus `/ingot:start`, `kickoff`, `specialize`, `workflow` (maps how the whole project gets done, then applies only the improvements you approve), `cleanup`, `update`, `settings`, `launch-check` (a 20-item website pre-launch check), `build-to-target` (pin a target, then build, look, compare and fix), and a silent-failure-hunter agent. |
 | [watch](https://github.com/bradautomates/claude-video) | `/watch <link or file>`: Claude watches videos using frames and a transcript, locally, with no account. |
 | [humanizer](https://github.com/blader/humanizer) | Removes the signs of AI writing from posts, emails and pages. |
 | `context7` | Up-to-date docs for the libraries a project uses. |

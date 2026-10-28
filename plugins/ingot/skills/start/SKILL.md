@@ -35,6 +35,7 @@ Show these in a short table:
 Then list the commands, one line each:
 
 - `/ingot:specialize` re-tunes the project
+- `/ingot:workflow` optimizes how the whole project gets done, not just the code
 - `/ingot:cleanup` fixes old code
 - `/ingot:build-to-target` builds to a target and checks the result
 - `/ingot:launch-check` runs a website pre-launch check
