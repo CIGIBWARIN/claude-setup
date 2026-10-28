@@ -1,0 +1,73 @@
+# Runs the install line on clean machines, with this commit's setup.mjs instead of the stable branch's.
+# Linux has no Node; macOS has Homebrew (which the README asks for) but no Node; Windows has no Node, Git or Python,
+# and in its old-node run an outdated Node comes first on PATH, the way nvm-windows, Volta or Scoop leave one.
+# Passing means setup.mjs exited 0: it checks with `claude plugin list` that every plugin really is installed.
+name: install
+on:
+  push:
+    paths: [install.sh, install.ps1, setup.mjs, '*.txt', settings.json, .github/workflows/install.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            path: /usr/bin:/bin:/usr/sbin:/sbin
+          - os: macos-latest
+            path: /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          export HOME="$RUNNER_TEMP/home" PATH="${{ matrix.path }}"
+          mkdir -p "$HOME" "$RUNNER_TEMP/project" && cd "$RUNNER_TEMP/project"
+          grep -q 'refs/heads/stable' "$GITHUB_WORKSPACE/install.sh" || { echo "install.sh no longer downloads refs/heads/stable; update this test" >&2; exit 1; }
+          sed "s#refs/heads/stable#$GITHUB_SHA#; s#ingot-stable#ingot-$GITHUB_SHA#" "$GITHUB_WORKSPACE/install.sh" | bash
+      - name: Run again (the update path)
+        run: |
+          export HOME="$RUNNER_TEMP/home" PATH="$RUNNER_TEMP/home/.local/bin:$RUNNER_TEMP/home/.local/share/ingot-node/bin:${{ matrix.path }}"
+          cd "$RUNNER_TEMP/project"
+          # --no-tools: `yt-dlp -U` asks GitHub's API, which rate-limits shared runners now and then.
+          node "$GITHUB_WORKSPACE/setup.mjs" --no-tools
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [none, old]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Take Node, Git and Python off the saved PATH
+        shell: powershell
+        run: |
+          foreach ($scope in 'Machine', 'User') {
+            $kept = [Environment]::GetEnvironmentVariable('Path', $scope) -split ';' | Where-Object { $_ -and $_ -notmatch 'nodejs|\\Git\\|\\npm|hostedtoolcache' }
+            [Environment]::SetEnvironmentVariable('Path', ($kept -join ';'), $scope)
+          }
+      - name: Put Node 20 first on the user PATH
+        if: matrix.node == 'old'
+        shell: powershell
+        run: |
+          $base = 'https://nodejs.org/dist/latest-v20.x'
+          $file = (Invoke-WebRequest -UseBasicParsing "$base/SHASUMS256.txt").Content -split "`n" | ForEach-Object { ($_ -split '\s+')[1] } | Where-Object { $_ -like '*-win-x64.zip' }
+          Invoke-WebRequest -UseBasicParsing "$base/$file" -OutFile "$env:RUNNER_TEMP\node20.zip"
+          Expand-Archive "$env:RUNNER_TEMP\node20.zip" "$env:LOCALAPPDATA\oldnode"
+          $dir = (Get-ChildItem "$env:LOCALAPPDATA\oldnode")[0].FullName
+          [Environment]::SetEnvironmentVariable('Path', "$dir;" + [Environment]::GetEnvironmentVariable('Path', 'User'), 'User')
+      - name: Install
+        shell: powershell
+        run: |
+          # What a new terminal gets. The runner points npm's global folder at one taken off PATH above.
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          $env:NPM_CONFIG_PREFIX = $null
+          New-Item -ItemType Directory C:\proj | Out-Null
+          Set-Location C:\proj
+          $script = Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1"
+          if ($script -notmatch 'refs/heads/stable') { throw 'install.ps1 no longer downloads refs/heads/stable; update this test' }
+          $script -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
+          exit $LASTEXITCODE
