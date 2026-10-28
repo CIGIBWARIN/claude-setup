@@ -147,6 +147,9 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 
 - agent-browser for browser automation
 - marketing and copy
+- logos and brand kits
+- launch videos for finished projects
+- a startup founder kit (pricing, validation, pitch deck)
 - slides
 - fiction
 - video creation
