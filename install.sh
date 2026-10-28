@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # One-step macOS/Linux bootstrap: installs anything missing (Node.js 22+, Claude Code), then runs setup.mjs.
-#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.sh | bash
 # Run it in the project folder. With options (e.g. --user to turn Ingot on for every project on this PC):
-#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/main/install.sh | bash -s -- --user
+#   curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.sh | bash -s -- --user
 set -euo pipefail
 
 # Everything is inside main so bash has read the whole script before anything that might read stdin runs.
