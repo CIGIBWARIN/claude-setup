@@ -123,11 +123,12 @@ function findPython() {
 }
 
 // winget writes the new PATH to the registry only; reload it so re-checks see what was just installed.
+// Duplicates are dropped: past about 8,000 characters cmd.exe (our shell) finds no commands at all.
 function refreshPath() {
   if (!isWin) return;
   // UTF-8 output, or folders under a non-ASCII user name (C:\Users\Jürgen) come back garbled.
   const r = run('powershell', ['-NoProfile', '-Command', `"[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`], { quiet: true });
-  if (r.ok && r.out) process.env.PATH = `${r.out};${process.env.PATH}`;
+  if (r.ok && r.out) process.env.PATH = [...new Set(`${r.out};${process.env.PATH}`.split(';').filter(Boolean))].join(';');
 }
 
 // Only the community source: the Microsoft Store source can fail on its own (seen on a fresh Windows) and isn't needed.
