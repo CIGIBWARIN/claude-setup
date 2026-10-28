@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   unix:
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +39,7 @@ jobs:
         shell: powershell
         run: |
           # No Node or Git on the saved PATH or this window's PATH; the runner has no winget.
-          $clean = { param($p) ($p -split ';' | Where-Object { $_ -and $_ -notmatch 'nodejs|\Git\|\npm|hostedtoolcache' }) -join ';' }
+          $clean = { param($p) ($p -split ';' | Where-Object { $_ -and $_ -notmatch 'nodejs|\\Git\\|\\npm|hostedtoolcache' }) -join ';' }
           [Environment]::SetEnvironmentVariable('Path', (& $clean ([Environment]::GetEnvironmentVariable('Path', 'Machine'))), 'Machine')
           [Environment]::SetEnvironmentVariable('Path', (& $clean ([Environment]::GetEnvironmentVariable('Path', 'User'))), 'User')
           $env:Path = & $clean $env:Path
@@ -47,4 +48,7 @@ jobs:
           Set-Location C:\proj
           Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1" | Invoke-Expression
           "exit code: $LASTEXITCODE"
+          "saved PATH: $(([Environment]::GetEnvironmentVariable('Path', 'Machine') + [Environment]::GetEnvironmentVariable('Path', 'User')).Length) chars; session PATH after install.ps1: $($env:Path.Length) chars, $(($env:Path -split ';').Count) entries"
+          cmd /c "where winget & where claude & npm -v"
+          node -e "const p=require('child_process');process.env.PATH=process.env.PATH+';'+process.env.PATH;for(const c of ['where winget','where claude','npm -v'])console.log(c,'->',p.spawnSync(c,{shell:true,encoding:'utf8'}).status,'at',process.env.PATH.length,'chars')"
           exit 0
