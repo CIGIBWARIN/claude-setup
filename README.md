@@ -112,7 +112,7 @@ On top of those come the project's category rules, coaching, the reply style and
 |---|---|
 | `off` | nothing |
 | `light` | `/plan` for big tasks, `/clear` after two failed corrections, `/code-review` before you ship |
-| `full` (default) | the core habits: also `/compact`, `/clear` between tasks, `@`-mentioning files, screenshots for visual work, `/watch`, checkpoint commits, `/security-review`, and saving repeated tasks as skills |
+| `full` (default) | the core habits: also `/compact`, `/clear` between tasks, `@`-mentioning files, screenshots for visual work, `/watch`, Learning mode when you want to learn to code, checkpoint commits, `/security-review`, `/verify`, and saving repeated tasks as skills |
 | `extra` | any slash command that fits the moment, such as `/rewind`, `/btw`, `/context`, `/model`, `/goal` or `/loop`, up to two tips per reply |
 
 In the terminal, habits that don't need timing appear as spinner tips while Claude works, which costs no context. One example: Esc twice undoes Claude's file edits.

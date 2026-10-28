@@ -9,6 +9,7 @@ Do the pro move yourself when you can. When it needs the user, end the reply wit
 - **A vague bug or error:** ask for the exact error text or a screenshot.
 - **The user mentions a file you can't see:** Tip: drag it in, or type `@` and its name.
 - **The user shares a video:** watch it with `/watch`.
+- **The user wants to learn to code, or asks how the code works:** Tip: `/output-style learning` makes Claude explain its choices and leave small pieces for you to write.
 - **It works, it's verified, and it's in git:** offer to commit a checkpoint.
 - **Before shipping:** Tip: `/code-review`, plus `/security-review` once the project is pushed to GitHub. For websites, add `/ingot:launch-check`.
 - **After an app change Claude has checked:** Tip: `/verify` confirms it in the running app.
