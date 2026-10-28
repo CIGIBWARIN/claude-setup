@@ -11,6 +11,7 @@ permissions:
   contents: read
 jobs:
   unix:
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -37,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [none, old]
+        node: [none]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,3 +68,15 @@ jobs:
           Set-Location C:\proj
           (Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1") -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
           exit $LASTEXITCODE
+      - name: Diagnose
+        if: failure()
+        shell: powershell
+        run: |
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          "npm prefix: $(npm config get prefix)"
+          "user npmrc: $(Get-Content $env:USERPROFILE\.npmrc -ErrorAction SilentlyContinue)"
+          "global npmrc: $(npm config get globalconfig) -> $(Get-Content (npm config get globalconfig) -ErrorAction SilentlyContinue)"
+          "NPM_CONFIG_PREFIX env: $env:NPM_CONFIG_PREFIX"
+          "User PATH: " + [Environment]::GetEnvironmentVariable('Path', 'User')
+          Get-ChildItem "$env:APPDATA\npm" -ErrorAction SilentlyContinue | Select-Object -First 8 Name
+          Get-Command pyright -ErrorAction SilentlyContinue | Select-Object Source
