@@ -178,7 +178,11 @@ function installConda(names) {
     // The package cache goes with the temp folder; installed files are hard links or copies, so they stay.
     const verb = fs.existsSync(path.join(prefix, 'conda-meta')) ? 'install' : 'create';
     if (!run(`"${bin}"`, [verb, '-y', '-q', '-r', `"${path.join(tmp, 'root')}"`, '-p', `"${prefix}"`,
-      '--override-channels', '-c', 'conda-forge', ...names.map((n) => condaTools[n][0])]).ok) return;
+      '--override-channels', '-c', 'conda-forge', ...names.map((n) => condaTools[n][0])]).ok) {
+      // A half-made folder would make every later `create` refuse to start.
+      if (verb === 'create') fs.rmSync(prefix, { recursive: true, force: true });
+      return;
+    }
     fs.mkdirSync(localBin, { recursive: true });
     for (const cmd of names.flatMap((n) => condaTools[n][1])) {
       // Leave anything already there alone; it may be the user's own.
