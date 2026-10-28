@@ -1,5 +1,6 @@
 # Runs the install line on clean machines, with this commit's setup.mjs instead of the stable branch's.
-# Linux has no Node; macOS has no Node, first with Homebrew and then without; Windows has no Node, Git or Python.
+# Linux has no Node; macOS has no Node, with Homebrew on Apple Silicon and without it on Intel (Apple's Python 3.9,
+# no ffmpeg); Windows has no Node, Git or Python.
 # Windows also runs with an outdated Node first on PATH (the way nvm-windows, Volta or Scoop leave one), and without
 # winget, which takes the same path as a PC without admin rights: winget's Node is machine-wide and needs admin.
 # Passing means setup.mjs exited 0: it checks with `claude plugin list` that every plugin really is installed.
@@ -22,7 +23,8 @@ jobs:
             path: /usr/bin:/bin:/usr/sbin:/sbin
           - os: macos-latest
             path: /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
-          # Intel: Homebrew and the runner's Node live in /usr/local/bin, left off PATH here.
+          # Homebrew and the runner's Node live in /usr/local/bin on Intel, left off PATH here.
+          # Intel runners are also easier to get: Apple Silicon jobs sometimes wait 15 minutes and get cancelled.
           - os: macos-15-intel
             path: /usr/bin:/bin:/usr/sbin:/sbin
     runs-on: ${{ matrix.os }}
@@ -41,16 +43,6 @@ jobs:
           # --no-tools: `yt-dlp -U` asks GitHub's API, which rate-limits shared runners now and then.
           node "$GITHUB_WORKSPACE/setup.mjs" --no-tools
           # setup.mjs only checks they're on PATH; these run them.
-          python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
-          ffmpeg -version | sed -n 1p && ffprobe -version | sed -n 1p
-      # A step, not a second Mac job: GitHub's Mac runners are scarce and queued jobs get cancelled.
-      - name: Python and ffmpeg without Homebrew
-        if: runner.os == 'macOS'
-        run: |
-          # A fresh home with Apple's Python 3.9 and no ffmpeg; the first home's Node and language servers are reused.
-          export HOME="$RUNNER_TEMP/nobrew" PATH="$RUNNER_TEMP/nobrew/.local/bin:$RUNNER_TEMP/home/.local/share/ingot-node/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-          mkdir -p "$HOME" && cd "$RUNNER_TEMP/project"
-          node "$GITHUB_WORKSPACE/setup.mjs" --no-plugins
           python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
           ffmpeg -version | sed -n 1p && ffprobe -version | sed -n 1p
   windows:
