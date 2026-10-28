@@ -57,6 +57,15 @@ check(!hook('session-rules.mjs', [], { source: 'clear' }).includes('/ingot:start
 const docGuard = (name) => hook('doc-guard.mjs', [], { tool_input: { file_path: path.join(tmp, name) }, tool_response: { type: 'create' } });
 check(docGuard('SUMMARY.md').includes('documentation file'), 'doc-guard: no reminder for SUMMARY.md');
 check(!docGuard('notes.txt'), 'doc-guard: reminder for an ordinary file');
+// A project's first file in docs/ is suspect; docs/ folders a project maintains, and archived copies, are not.
+fs.mkdirSync(path.join(tmp, 'docs'));
+fs.writeFileSync(path.join(tmp, 'docs', 'guide.md'), '');
+check(docGuard('docs/guide.md').includes('documentation file'), 'doc-guard: no reminder for the first file in a new docs/ folder');
+fs.mkdirSync(path.join(tmp, 'docs', 'archive', '2026-10-10'), { recursive: true });
+fs.writeFileSync(path.join(tmp, 'docs', 'STATUS.md'), '');
+check(!docGuard('docs/STATUS.md'), 'doc-guard: reminder in a docs/ folder the project maintains');
+check(!docGuard('docs/archive/2026-10-10/progress-notes.md'), 'doc-guard: reminder for an archived copy');
+check(/asked, including any files or tests it names/.test(hook('session-rules.mjs', ['SubagentStart'], {})), 'subagent rules: helpers may not write the tests they were asked for');
 fs.rmSync(root, { recursive: true, force: true });
 
 if (problems.length) {
