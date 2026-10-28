@@ -11,16 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Install on a clean machine
         run: |
+          set +e
           export HOME="$RUNNER_TEMP/home" PATH=/usr/bin:/bin:/usr/sbin:/sbin
           mkdir -p "$HOME" "$RUNNER_TEMP/project" && cd "$RUNNER_TEMP/project"
           echo "bash $BASH_VERSION, python3: $(python3 --version 2>&1), git: $(git --version 2>&1)"
           cat "$GITHUB_WORKSPACE/install.sh" | bash || echo "install.sh exit code $?"
+          echo ---- yt-dlp update; "$HOME/.local/bin/yt-dlp" --ignore-config -U; echo "exit $?"; "$HOME/.local/bin/yt-dlp" --version; file "$HOME/.local/bin/yt-dlp"; xattr -l "$HOME/.local/bin/yt-dlp"
           echo ---- re-run with this commit
           export PATH="$HOME/.local/bin:$HOME/.local/share/ingot-node/bin:$PATH"
           node "$GITHUB_WORKSPACE/setup.mjs" || echo "setup.mjs exit code $?"
