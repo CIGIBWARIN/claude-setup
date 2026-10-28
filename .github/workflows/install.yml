@@ -30,3 +30,21 @@ jobs:
           claude plugin list --json || true
           cat .claude/settings.json || true
           ls -la "$HOME" "$HOME/.local/bin" || true
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install on a clean machine
+        shell: powershell
+        run: |
+          # No Node or Git on the saved PATH or this window's PATH; the runner has no winget.
+          $clean = { param($p) ($p -split ';' | Where-Object { $_ -and $_ -notmatch 'nodejs|\Git\|\npm|hostedtoolcache' }) -join ';' }
+          [Environment]::SetEnvironmentVariable('Path', (& $clean ([Environment]::GetEnvironmentVariable('Path', 'Machine'))), 'Machine')
+          [Environment]::SetEnvironmentVariable('Path', (& $clean ([Environment]::GetEnvironmentVariable('Path', 'User'))), 'User')
+          $env:Path = & $clean $env:Path
+          "winget: $([bool](Get-Command winget -ErrorAction SilentlyContinue)), node: $([bool](Get-Command node -ErrorAction SilentlyContinue)), git: $([bool](Get-Command git -ErrorAction SilentlyContinue)), PS $($PSVersionTable.PSVersion)"
+          New-Item -ItemType Directory C:\proj | Out-Null
+          Set-Location C:\proj
+          Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1" | Invoke-Expression
+          "exit code: $LASTEXITCODE"
+          exit 0
