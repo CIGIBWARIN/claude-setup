@@ -150,6 +150,10 @@ In the terminal, habits that don't need timing appear as spinner tips while Clau
 - logos and brand kits
 - launch videos for finished projects
 - a startup founder kit (pricing, validation, pitch deck)
+- 3D: three.js web scenes and Blender
+- scroll and timeline animation (GSAP) and shadcn/ui components
+- games: Godot, Phaser and PixiJS
+- data files and local SQL (DuckDB)
 - slides
 - fiction
 - video creation

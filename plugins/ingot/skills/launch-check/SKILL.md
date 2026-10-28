@@ -41,6 +41,9 @@ Each item here needs the user's input. Ask, don't invent.
 19. **Analytics.** Ask which provider the user wants. A cookieless option avoids the need for a consent banner.
 20. A **cookie consent banner,** only if the site sets non-essential cookies, such as analytics or ads cookies.
 
+## Going live
+If the site isn't online yet and it's static (plain HTML, or a framework's static build), offer GitHub Pages: it's free and needs only a GitHub account. Turn it on with the official Pages workflow (`gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`, plus a workflow that builds and uploads the site). A private repo needs a paid GitHub plan for Pages, so say so before making a repo public.
+
 ## Report
 
 Give one line per item: ✅ already done, 🔧 fixed (and how you verified it), ⏭ skipped (and why), or ❓ needs a decision. List the decisions at the end.
