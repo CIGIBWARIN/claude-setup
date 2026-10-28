@@ -26,6 +26,7 @@ jobs:
         run: |
           export HOME="$RUNNER_TEMP/home" PATH="${{ matrix.path }}"
           mkdir -p "$HOME" "$RUNNER_TEMP/project" && cd "$RUNNER_TEMP/project"
+          grep -q 'refs/heads/stable' "$GITHUB_WORKSPACE/install.sh" || { echo "install.sh no longer downloads refs/heads/stable; update this test" >&2; exit 1; }
           sed "s#refs/heads/stable#$GITHUB_SHA#; s#ingot-stable#ingot-$GITHUB_SHA#" "$GITHUB_WORKSPACE/install.sh" | bash
       - name: Run again (the update path)
         run: |
@@ -66,5 +67,7 @@ jobs:
           $env:NPM_CONFIG_PREFIX = $null
           New-Item -ItemType Directory C:\proj | Out-Null
           Set-Location C:\proj
-          (Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1") -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
+          $script = Get-Content -Raw "$env:GITHUB_WORKSPACE\install.ps1"
+          if ($script -notmatch 'refs/heads/stable') { throw 'install.ps1 no longer downloads refs/heads/stable; update this test' }
+          $script -replace 'refs/heads/stable', $env:GITHUB_SHA -replace 'ingot-stable', "ingot-$env:GITHUB_SHA" | Invoke-Expression
           exit $LASTEXITCODE

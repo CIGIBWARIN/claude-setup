@@ -11,7 +11,8 @@ $setupArgs = $args
     function Test-Command($name) { [bool](Get-Command $name -ErrorAction SilentlyContinue) }
 
     # taste-skill needs Node 22 or newer.
-    function Test-Node { (Test-Command 'node') -and ([int]((node -v) -replace '^v(\d+).*', '$1') -ge 22) }
+    # A shim with no Node behind it (Volta without a default) prints an error instead of a version.
+    function Test-Node { (Test-Command 'node') -and ("$(node -v)" -match '^v(\d+)') -and ([int]$Matches[1] -ge 22) }
 
     # Saved PATH first, so new installs win; this window's own entries (fnm, conda, nvm) are kept after it.
     # Duplicates are dropped: each refresh would add the saved PATH again, and past about 8,000 characters
