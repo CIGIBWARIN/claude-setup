@@ -1,5 +1,5 @@
 # Runs the install line on clean machines, with this commit's setup.mjs instead of the stable branch's.
-# Linux has no Node; macOS has Homebrew (which the README asks for) but no Node; Windows has no Node, Git or Python.
+# Linux has no Node; macOS has no Node, once with Homebrew and once without; Windows has no Node, Git or Python.
 # Windows also runs with an outdated Node first on PATH (the way nvm-windows, Volta or Scoop leave one), and without
 # winget, which takes the same path as a PC without admin rights: winget's Node is machine-wide and needs admin.
 # Passing means setup.mjs exited 0: it checks with `claude plugin list` that every plugin really is installed.
@@ -22,6 +22,9 @@ jobs:
             path: /usr/bin:/bin:/usr/sbin:/sbin
           - os: macos-latest
             path: /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+          # Python 3.9 (Apple's) and no ffmpeg: both come from conda-forge.
+          - os: macos-latest
+            path: /usr/bin:/bin:/usr/sbin:/sbin
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +40,9 @@ jobs:
           cd "$RUNNER_TEMP/project"
           # --no-tools: `yt-dlp -U` asks GitHub's API, which rate-limits shared runners now and then.
           node "$GITHUB_WORKSPACE/setup.mjs" --no-tools
+          # setup.mjs only checks they're on PATH; these run them.
+          python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+          ffmpeg -version | head -1 && ffprobe -version | head -1
   windows:
     strategy:
       fail-fast: false

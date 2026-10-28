@@ -11,6 +11,7 @@
 //          --remove      turn Ingot off for this project (with --user: for the whole PC)
 //          --prune       forget plugin registrations of project folders that were deleted
 //          --project     same as the default (kept for older instructions)
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -155,6 +156,39 @@ function linuxInstall(pkg, what, archPkg = pkg) {
   else fail(what, `install ${pkg} with your package manager, then run this command again`);
 }
 
+// Macs without Homebrew: Python and ffmpeg from conda-forge into ~/.local/share/ingot-tools, linked into ~/.local/bin.
+// Needs no admin rights. micromamba is pinned and checked here, and it checks every package it downloads.
+const micromamba = { version: '2.9.0-0', sha256: {
+  arm64: 'ec2a072f028e1a7cf20f3e2e74d5a8127cf5a5f27636375b5359811565f4e5be',
+  x64: '1e71054bb3ac9a076e21f7ec48acfef536f9b3f1408f371a942784bf5ef83d8a',
+} };
+const condaTools = { python: ['python=3.13', ['python3', 'python3.13']], ffmpeg: ['ffmpeg', ['ffmpeg', 'ffprobe']] };
+function installConda(names) {
+  const prefix = path.join(os.homedir(), '.local', 'share', 'ingot-tools');
+  console.log(`Installing ${names.join(' and ')} from conda-forge into ${prefix}...`);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ingot-'));
+  try {
+    const bin = path.join(tmp, 'micromamba');
+    const url = `https://github.com/mamba-org/micromamba-releases/releases/download/${micromamba.version}/micromamba-osx-${process.arch === 'arm64' ? 'arm64' : '64'}`;
+    if (!run('curl', ['-fsSL', '-o', `"${bin}"`, url]).ok) return;
+    if (crypto.createHash('sha256').update(fs.readFileSync(bin)).digest('hex') !== micromamba.sha256[process.arch]) {
+      return console.log('The micromamba download failed its checksum.');
+    }
+    fs.chmodSync(bin, 0o755);
+    // The package cache goes with the temp folder; installed files are hard links or copies, so they stay.
+    const verb = fs.existsSync(path.join(prefix, 'conda-meta')) ? 'install' : 'create';
+    if (!run(`"${bin}"`, [verb, '-y', '-q', '-r', `"${path.join(tmp, 'root')}"`, '-p', `"${prefix}"`,
+      '--override-channels', '-c', 'conda-forge', ...names.map((n) => condaTools[n][0])]).ok) return;
+    fs.mkdirSync(localBin, { recursive: true });
+    for (const cmd of names.flatMap((n) => condaTools[n][1])) {
+      // Leave anything already there alone; it may be the user's own.
+      try { fs.lstatSync(path.join(localBin, cmd)); } catch { fs.symlinkSync(path.join(prefix, 'bin', cmd), path.join(localBin, cmd)); }
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
 // yt-dlp's own release binary: distro packages are often too old to download from current sites.
 async function installYtDlp() {
   // musl systems such as Alpine can't run the glibc builds.
@@ -210,11 +244,13 @@ async function installTools() {
     refreshPath();
   }
   const needPython = !findPython(), needFfmpeg = !onPath('ffmpeg'), needYtDlp = !onPath('yt-dlp');
+  const conda = [];
   if (needPython) {
     console.log('Python 3.10+ not found (needed by security-guidance and /watch).');
     if (hasWinget) winget('Python.Python.3.13', ['--scope', 'user']);
     else if (hasBrew) run('brew', ['install', 'python@3.13']);
     else if (linux) linuxInstall('python3', 'Python 3.10+', 'python');
+    else if (mac) conda.push('python');
   }
   // ffmpeg + yt-dlp let /watch read videos locally, with no account or API key.
   if (needFfmpeg || needYtDlp) console.log('Installing video tools for /watch: ' + [needFfmpeg && 'ffmpeg', needYtDlp && 'yt-dlp'].filter(Boolean).join(', '));
@@ -222,7 +258,9 @@ async function installTools() {
     if (hasWinget) winget('Gyan.FFmpeg.Essentials');
     else if (hasBrew) run('brew', ['install', 'ffmpeg']);
     else if (linux) linuxInstall('ffmpeg', 'ffmpeg');
+    else if (mac) conda.push('ffmpeg');
   }
+  if (conda.length) installConda(conda);
   // Without --skip-dependencies winget adds a second 500 MB FFmpeg and Deno; we already have both jobs covered.
   if (needYtDlp && hasWinget) winget('yt-dlp.yt-dlp', ['--skip-dependencies']);
   else if (needYtDlp && !isWin) await installYtDlp();

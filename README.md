@@ -21,8 +21,8 @@ Ingot is turned on **per project**: you run the install line inside each project
    curl -fsSL https://raw.githubusercontent.com/CIGIBWARIN/ingot/stable/install.sh | bash
    ```
    - **Windows** may show a permission prompt if it needs to install Git or Node.js. Click Yes.
-   - **Mac / Linux** may ask for your password if it needs a system package such as Python or ffmpeg. Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
-   - **Mac:** installing Python and ffmpeg needs [Homebrew](https://brew.sh). Install it first if you don't have it.
+   - **Mac / Linux** may ask for your password if something has to be installed for all users (on Linux: system packages such as Python or ffmpeg). Don't put `sudo` in front of the line, because that would set Ingot up for the admin account instead of you.
+   - **Mac:** Python and ffmpeg come from [Homebrew](https://brew.sh) if you have it, otherwise from [conda-forge](https://conda-forge.org) into your user folder.
 3. **Start Claude in that folder.**
    - **Terminal:** open a new terminal in the folder, type `claude` and press Enter. If Claude Code was just installed, it asks you to sign in once.
    - **Desktop app:** start a new session in the Code tab with that folder. If the installer just installed Node.js or Git, quit the app completely and reopen it first, so it can find them.
