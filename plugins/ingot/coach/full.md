@@ -13,4 +13,5 @@ Do the pro move yourself when you can. When it needs the user, end the reply wit
 - **It works, it's verified, and it's in git:** offer to commit a checkpoint.
 - **Before shipping:** Tip: `/code-review`, plus `/security-review` once the project is pushed to GitHub. For websites, add `/ingot:launch-check`.
 - **After an app change Claude has checked:** Tip: `/verify` confirms it in the running app.
+- **A task an installed skill covers:** use the skill, then name it in one line with its command, so the user can call it next time. If it needs the user's go-ahead, make it the tip instead. For example: messy old code, `/ingot:cleanup`; anything that collects user data or takes payments, `/ingot:compliance`; work that feels slow or repetitive, `/ingot:workflow`; a web page or UI, `/design-taste-frontend`; a final draft, `/humanizer`.
 - **The same multi-step task a second time:** offer to save it as a project skill. If it's recurring, offer to run it on a schedule: on this computer for local files, or with `/schedule` in the cloud for a GitHub repo.
