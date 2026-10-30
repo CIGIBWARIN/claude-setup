@@ -1,6 +1,7 @@
 # Runs the install line on clean machines, with this commit's setup.mjs instead of the stable branch's.
-# Linux has no Node; macOS has no Node, with Homebrew on Apple Silicon and without it on Intel (Apple's Python 3.9,
-# no ffmpeg); Windows has no Node, Git or Python.
+# Linux has no Node, and once more without working sudo, Python or ffmpeg (a user without admin rights); macOS has
+# no Node, with Homebrew on Apple Silicon and without it on Intel (Apple's Python 3.9, no ffmpeg); Windows has no Node,
+# Git or Python.
 # Windows also runs with an outdated Node first on PATH (the way nvm-windows, Volta or Scoop leave one), and without
 # winget, which takes the same path as a PC without admin rights: winget's Node is machine-wide and needs admin.
 # Passing means setup.mjs exited 0: it checks with `claude plugin list` that every plugin really is installed.
@@ -21,6 +22,10 @@ jobs:
         include:
           - os: ubuntu-latest
             path: /usr/bin:/bin:/usr/sbin:/sbin
+          # A sudo that wants a password comes first on PATH, so setup.mjs takes the conda-forge route.
+          - os: ubuntu-latest
+            nosudo: true
+            path: $RUNNER_TEMP/nosudo:/usr/bin:/bin:/usr/sbin:/sbin
           - os: macos-latest
             path: /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
           # Homebrew and the runner's Node live in /usr/local/bin on Intel, left off PATH here.
@@ -30,6 +35,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Take away sudo, Python and ffmpeg
+        if: matrix.nosudo
+        run: |
+          for f in python3 python ffmpeg ffprobe; do [ ! -e "/usr/bin/$f" ] || sudo mv "/usr/bin/$f" "/usr/bin/$f.hidden"; done
+          mkdir "$RUNNER_TEMP/nosudo"
+          printf '#!/bin/sh\necho "sudo: a password is required" >&2\nexit 1\n' > "$RUNNER_TEMP/nosudo/sudo"
+          chmod +x "$RUNNER_TEMP/nosudo/sudo"
       - name: Install
         run: |
           export HOME="$RUNNER_TEMP/home" PATH="${{ matrix.path }}"
@@ -45,6 +57,7 @@ jobs:
           # setup.mjs only checks they're on PATH; these run them.
           python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
           ffmpeg -version | sed -n 1p && ffprobe -version | sed -n 1p
+          if [ "${{ matrix.nosudo }}" = true ]; then readlink "$(command -v python3)" "$(command -v ffmpeg)" | grep -c ingot-tools | grep -qx 2; fi
   windows:
     strategy:
       fail-fast: false

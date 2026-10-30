@@ -156,11 +156,13 @@ function linuxInstall(pkg, what, archPkg = pkg) {
   else fail(what, `install ${pkg} with your package manager, then run this command again`);
 }
 
-// Macs without Homebrew: Python and ffmpeg from conda-forge into ~/.local/share/ingot-tools, linked into ~/.local/bin.
-// Needs no admin rights. micromamba is pinned and checked here, and it checks every package it downloads.
+// Macs without Homebrew, and Linux without sudo: Python and ffmpeg from conda-forge into ~/.local/share/ingot-tools,
+// linked into ~/.local/bin. Needs no admin rights. micromamba is pinned and checked here, and it checks every package it downloads.
 const micromamba = { version: '2.9.0-0', sha256: {
-  arm64: 'ec2a072f028e1a7cf20f3e2e74d5a8127cf5a5f27636375b5359811565f4e5be',
-  x64: '1e71054bb3ac9a076e21f7ec48acfef536f9b3f1408f371a942784bf5ef83d8a',
+  'osx-arm64': 'ec2a072f028e1a7cf20f3e2e74d5a8127cf5a5f27636375b5359811565f4e5be',
+  'osx-64': '1e71054bb3ac9a076e21f7ec48acfef536f9b3f1408f371a942784bf5ef83d8a',
+  'linux-aarch64': '9f93b974adcb4d166996af969b6cd371287d1a3e52733704727884d9b74cb7a7',
+  'linux-64': '366cd9cd8be14df1ab8ed50352a82111082a36686b2d389fdb79a92c3fafb3e3',
 } };
 const condaTools = { python: ['python=3.13', ['python3', 'python3.13']], ffmpeg: ['ffmpeg', ['ffmpeg', 'ffprobe']] };
 function installConda(names) {
@@ -169,9 +171,11 @@ function installConda(names) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ingot-'));
   try {
     const bin = path.join(tmp, 'micromamba');
-    const url = `https://github.com/mamba-org/micromamba-releases/releases/download/${micromamba.version}/micromamba-osx-${process.arch === 'arm64' ? 'arm64' : '64'}`;
+    const mac = process.platform === 'darwin';
+    const asset = `${mac ? 'osx' : 'linux'}-${process.arch !== 'arm64' ? '64' : mac ? 'arm64' : 'aarch64'}`;
+    const url = `https://github.com/mamba-org/micromamba-releases/releases/download/${micromamba.version}/micromamba-${asset}`;
     if (!run('curl', ['-fsSL', '-o', `"${bin}"`, url]).ok) return;
-    if (crypto.createHash('sha256').update(fs.readFileSync(bin)).digest('hex') !== micromamba.sha256[process.arch]) {
+    if (crypto.createHash('sha256').update(fs.readFileSync(bin)).digest('hex') !== micromamba.sha256[asset]) {
       return console.log('The micromamba download failed its checksum.');
     }
     fs.chmodSync(bin, 0o755);
@@ -193,12 +197,13 @@ function installConda(names) {
   }
 }
 
+// musl systems such as Alpine can't run glibc builds (yt-dlp's linux binary, conda-forge packages).
+const isMusl = () => process.platform === 'linux' && !process.report?.getReport().header.glibcVersionRuntime;
+
 // yt-dlp's own release binary: distro packages are often too old to download from current sites.
 async function installYtDlp() {
-  // musl systems such as Alpine can't run the glibc builds.
-  const musl = process.platform === 'linux' && !process.report?.getReport().header.glibcVersionRuntime;
   const asset = process.platform === 'darwin' ? 'yt-dlp_macos'
-    : `yt-dlp_${musl ? 'musllinux' : 'linux'}${process.arch === 'arm64' ? '_aarch64' : ''}`;
+    : `yt-dlp_${isMusl() ? 'musllinux' : 'linux'}${process.arch === 'arm64' ? '_aarch64' : ''}`;
   const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${asset}`;
   fs.mkdirSync(path.dirname(localYtDlp), { recursive: true });
   try {
@@ -249,20 +254,24 @@ async function installTools() {
   }
   const needPython = !findPython(), needFfmpeg = !onPath('ffmpeg'), needYtDlp = !onPath('yt-dlp');
   const conda = [];
+  // Linux without root or password-free sudo: conda-forge too, rather than a sudo password prompt or an admin.
+  // conda-forge has glibc builds for x64 and arm64 only; elsewhere the package manager route reports what to run.
+  const linuxConda = linux && (needPython || needFfmpeg) && !isRoot && ['x64', 'arm64'].includes(process.arch) && !isMusl()
+    && !(onPath('sudo') && run('sudo', ['-n', 'true'], { quiet: true }).ok);
   if (needPython) {
     console.log('Python 3.10+ not found (needed by security-guidance and /watch).');
     if (hasWinget) winget('Python.Python.3.13', ['--scope', 'user']);
     else if (hasBrew) run('brew', ['install', 'python@3.13']);
+    else if (mac || linuxConda) conda.push('python');
     else if (linux) linuxInstall('python3', 'Python 3.10+', 'python');
-    else if (mac) conda.push('python');
   }
   // ffmpeg + yt-dlp let /watch read videos locally, with no account or API key.
   if (needFfmpeg || needYtDlp) console.log('Installing video tools for /watch: ' + [needFfmpeg && 'ffmpeg', needYtDlp && 'yt-dlp'].filter(Boolean).join(', '));
   if (needFfmpeg) {
     if (hasWinget) winget('Gyan.FFmpeg.Essentials');
     else if (hasBrew) run('brew', ['install', 'ffmpeg']);
+    else if (mac || linuxConda) conda.push('ffmpeg');
     else if (linux) linuxInstall('ffmpeg', 'ffmpeg');
-    else if (mac) conda.push('ffmpeg');
   }
   if (conda.length) installConda(conda);
   // Without --skip-dependencies winget adds a second 500 MB FFmpeg and Deno; we already have both jobs covered.
