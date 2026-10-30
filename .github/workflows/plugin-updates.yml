@@ -27,13 +27,13 @@ jobs:
             case "$spec" in *'#'*) ;; *) continue ;; esac
             repo=${spec%%#*} pin=${spec#*#}
             [ "$repo" = CIGIBWARIN/ingot ] && continue
-            latest=$(gh release view -R "$repo" --json tagName --jq .tagName) || { echo "::warning::no release for $repo"; continue; }
+            latest=$(gh release view -R "$repo" --json tagName --jq .tagName </dev/null) || { echo "::warning::no release for $repo"; continue; }
             newest=$(printf '%s\n%s\n' "$pin" "$latest" | sort -V | tail -n1)
             if [ "$latest" = "$pin" ] || [ "$newest" != "$latest" ]; then echo "$name: $pin is current"; continue; fi
             title="Update available: $name $pin → $latest"
             if grep -qxF "$title" <<<"$open_titles"; then echo "$name: issue already open"; continue; fi
             body="[$repo $latest](https://github.com/$repo/releases/tag/$latest) is out; marketplaces.txt pins $pin.
 
-          Move the pin only after \`node evals/run.mjs <suite> --ref $latest\` passes."
+          Move the pin only after \`node evals/run.mjs $name --ref $latest\` passes."
             if [ -n "$DRY_RUN" ]; then echo "would open: $title"; echo "$body"; else gh issue create --title "$title" --body "$body"; fi
           done

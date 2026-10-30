@@ -254,10 +254,10 @@ async function installTools() {
   }
   const needPython = !findPython(), needFfmpeg = !onPath('ffmpeg'), needYtDlp = !onPath('yt-dlp');
   const conda = [];
-  // Linux without root or password-free sudo: conda-forge too, rather than a sudo password prompt or an admin.
+  // Linux where sudo can't work (asRoot would only say "ask an admin"): conda-forge too, needing no admin.
   // conda-forge has glibc builds for x64 and arm64 only; elsewhere the package manager route reports what to run.
   const linuxConda = linux && (needPython || needFfmpeg) && !isRoot && ['x64', 'arm64'].includes(process.arch) && !isMusl()
-    && !(onPath('sudo') && run('sudo', ['-n', 'true'], { quiet: true }).ok);
+    && !(onPath('sudo') && (run('sudo', ['-n', 'true'], { quiet: true }).ok || process.stdin.isTTY || hasTty()));
   if (needPython) {
     console.log('Python 3.10+ not found (needed by security-guidance and /watch).');
     if (hasWinget) winget('Python.Python.3.13', ['--scope', 'user']);
