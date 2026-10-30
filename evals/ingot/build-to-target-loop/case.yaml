@@ -1,0 +1,8 @@
+schema_version: "1.0"
+name: build-to-target-loop
+description: /ingot:build-to-target pins the target as exact cases, runs the real output, and reports the evidence.
+execution:
+  max_turns: 15
+  allowed_tools: [Read, Write, Edit, Bash, Skill]
+  prompt: |
+    /ingot:build-to-target Make `slug.py` with `slugify(text)`: "Hello, World!" -> "hello-world", "  Ünïcode  Café " -> "unicode-cafe", "a--b__c" -> "a-b-c".

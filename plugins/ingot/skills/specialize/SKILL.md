@@ -27,7 +27,7 @@ If it's still unclear, ask one question: what is this project for, and who is it
 
 ## 3. Write or trim CLAUDE.md (60 lines at most)
 
-Include only what Claude can't infer: one line on what the project is and who it's for; the verified commands or workflow steps; a map of the top-level folders, one line each; conventions that differ from the defaults; and known gotchas.
+Include only what Claude can't infer: one line on what the project is and who it's for; the verified commands or workflow steps; a map of the top-level folders, one line each; conventions that differ from the defaults; and known gotchas. Every rule must be stated in the project's files; put any rule you only inferred in the report as a suggestion, not in CLAUDE.md.
 
 If a CLAUDE.md, `.claude/CLAUDE.md` or `AGENTS.md` already exists, edit that file. Keep the user's own rules, and delete stale, duplicated or obvious lines.
 

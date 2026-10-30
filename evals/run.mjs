@@ -37,9 +37,10 @@ if (unknown.length) { console.error(`No suite named ${unknown.join(', ')}. Suite
 
 const lines = (f) => fs.readFileSync(path.join(repo, f), 'utf8').split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
 // Evals refuse shell tools where they can't sandbox them (native Windows), so those cases run on macOS, Linux or WSL.
+// A case's scaffold_script (bash that sets up its files) doesn't run on native Windows either.
 const shellOk = process.platform !== 'win32';
 const needsShell = (dir) => ['prompt.md', 'case.yaml'].some((f) => fs.existsSync(path.join(dir, f)) &&
-  /allowed_tools:.*\b(Bash|PowerShell)\b/.test(fs.readFileSync(path.join(dir, f), 'utf8')));
+  /allowed_tools:.*\b(Bash|PowerShell)\b|scaffold_script:/.test(fs.readFileSync(path.join(dir, f), 'utf8')));
 const sh = (cmd, cwd) => spawnSync(cmd, { shell: true, stdio: 'inherit', cwd }).status;
 const results = path.join(here, 'results');
 fs.mkdirSync(results, { recursive: true });
@@ -92,7 +93,7 @@ for (const suite of chosen) {
       continue;
     }
     const json = path.join(results, `${suite}.json`);
-    const code = sh(['claude plugin eval', `"${dir}"`, '--eval-dir ingot-evals', `--output-dir "${path.join(tmp, 'out')}"`, `--runs ${runs}`, '--trust-plugin', '--no-publish',
+    const code = sh(['claude plugin eval', `"${dir}"`, '--eval-dir ingot-evals', `--output-dir "${path.join(tmp, 'out')}"`, `--runs ${runs}`, '--trust-plugin', '--no-publish', ...(shellOk ? ['--scaffold'] : []),
       `--allow-tools Write Edit${shellOk ? ' Bash' : ''}`, `--json "${json}"`, `--report "${path.join(results, `${suite}.html`)}"`, ...args].join(' '));
     if (code !== 0) failed++;
     console.log(`${suite}: ${code === 0 ? 'passed' : `FAILED (exit ${code})`}\n`);
